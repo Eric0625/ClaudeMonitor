@@ -39,6 +39,7 @@ final class SessionPanelController {
 
     private let panel = SessionPanel()
     private let layout = PanelLayout()
+    private let hostingView: FirstMouseHostingView<SessionPanelView>
     private var contentSize = CGSize(width: SessionPanelView.width, height: 120)
     private var pointerTracking: PointerTrackingTarget?
 
@@ -61,11 +62,12 @@ final class SessionPanelController {
             )
         )
         let hostingView = FirstMouseHostingView(rootView: rootView)
-        hostingView.sizingOptions = []
+        hostingView.sizingOptions = [.intrinsicContentSize]
         hostingView.autoresizingMask = [.width, .height]
         hostingView.frame = effectView.bounds
         effectView.addSubview(hostingView)
         panel.contentView = effectView
+        self.hostingView = hostingView
 
         sizeChanged = { [weak self] size in
             self?.contentSize = size
@@ -87,11 +89,18 @@ final class SessionPanelController {
 
     func show() {
         layout.maxListHeight = maxListHeight()
+        layout.isVisible = true
+        hostingView.layoutSubtreeIfNeeded()
+        let measured = hostingView.fittingSize
+        if measured.width > 0, measured.height > 0 {
+            contentSize = measured
+        }
         placePanel()
         panel.orderFrontRegardless()
     }
 
     func hide() {
+        layout.isVisible = false
         panel.orderOut(nil)
     }
 

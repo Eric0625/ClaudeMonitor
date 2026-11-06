@@ -117,7 +117,6 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         let event = NSApp.currentEvent
         let wantsMenu = event?.type == .rightMouseUp || event?.modifierFlags.contains(.control) == true
         if wantsMenu {
-            presenter?.dismiss()
             statusItem.menu = menu
             statusItem.button?.performClick(nil)
         } else {
@@ -134,12 +133,14 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     }
 
     func menuWillOpen(_ menu: NSMenu) {
+        presenter?.suspend()
         launchAtLogin.refresh()
         launchAtLoginItem.state = launchAtLogin.isEnabled ? .on : .off
     }
 
     func menuDidClose(_ menu: NSMenu) {
         statusItem.menu = nil
+        presenter?.resume()
     }
 
     @objc private func toggleLaunchAtLogin() {

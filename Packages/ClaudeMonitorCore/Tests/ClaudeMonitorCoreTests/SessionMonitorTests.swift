@@ -85,6 +85,98 @@ struct SessionMonitorTests {
         #expect(harness.monitor.panelState.icon == .noSessions)
     }
 
+    @Test func turnCompletesAfterPartialWriteRecovers() throws {
+        let harness = try MonitorHarness()
+        try harness.writeSession("session-busy", pid: 100, status: "idle", at: -60)
+        harness.refresh()
+        try harness.writeSession("session-busy", pid: 100, status: "busy", at: 0)
+        harness.refresh()
+        try harness.folder.writeRawSession(pid: 100, contents: Fixture.data("session-partial"))
+        harness.refresh()
+
+        try harness.writeSession("session-busy", pid: 100, status: "idle", at: 40)
+        let events = harness.refresh()
+
+        #expect(events == [SessionEvent(sessionID: busyID, kind: .turnCompleted(duration: 40))])
+    }
+
+    @Test func waitingToIdleCompletesTurn() throws {
+        let harness = try MonitorHarness()
+        try harness.writeSession("session-busy", pid: 100, status: "busy", at: 0)
+        harness.refresh()
+        try harness.writeSession(
+            "session-busy", pid: 100, status: "waiting", at: 5,
+            overrides: ["waitingFor": "input needed"]
+        )
+        harness.refresh()
+
+        try harness.writeSession("session-busy", pid: 100, status: "idle", at: 20)
+        let events = harness.refresh()
+
+        #expect(events == [SessionEvent(sessionID: busyID, kind: .turnCompleted(duration: 20))])
+    }
+
+    @Test func deletedFileUnloadsRunningProcess() throws {
+        let harness = try MonitorHarness()
+        try harness.writeSession("session-busy", pid: 100, status: "busy", at: 0)
+        harness.refresh()
+
+        try harness.folder.removeSession(pid: 100)
+        let events = harness.refresh()
+
+        #expect(events == [SessionEvent(sessionID: busyID, kind: .unloaded)])
+        #expect(harness.monitor.panelState.running.isEmpty)
+    }
+
+    @Test func unknownStatusThenIdleIsNotATurn() throws {
+        let harness = try MonitorHarness()
+        try harness.writeSession("session-busy", pid: 100, status: "compacting", at: 0)
+        harness.refresh()
+
+        try harness.writeSession("session-busy", pid: 100, status: "idle", at: 10)
+        let events = harness.refresh()
+
+        #expect(events.isEmpty)
+        #expect(harness.notifications.posted.isEmpty)
+    }
+
+    @Test func busyWithNewerStatusTimeKeepsTurnStart() throws {
+        let harness = try MonitorHarness()
+        try harness.writeSession("session-busy", pid: 100, status: "busy", at: 10)
+        harness.refresh()
+
+        try harness.writeSession("session-busy", pid: 100, status: "busy", at: 50)
+        let events = harness.refresh()
+
+        #expect(events.isEmpty)
+        #expect(harness.monitor.panelState.running.first?.turnStartedAt == Fixture.date(10))
+    }
+
+    @Test func spareConversionWithoutStatusShowsNoWarning() throws {
+        let harness = try MonitorHarness()
+        try harness.writeSession("session-spare", pid: 100)
+        harness.refresh()
+
+        try harness.writeSession("session-busy", pid: 100, overrides: ["status": NSNull(), "statusUpdatedAt": NSNull()])
+        let events = harness.refresh()
+
+        #expect(events.isEmpty)
+        #expect(harness.monitor.panelState.formatWarning == nil)
+        #expect(harness.monitor.panelState.icon == .noSessions)
+    }
+
+    @Test func incompleteRewriteKeepsLastGoodSession() throws {
+        let harness = try MonitorHarness()
+        try harness.writeSession("session-busy", pid: 100, status: "busy", at: 0)
+        harness.refresh()
+
+        try harness.writeSession("session-busy", pid: 100, overrides: ["status": NSNull()])
+        let events = harness.refresh()
+
+        #expect(events.isEmpty)
+        #expect(harness.monitor.panelState.running.map(\.id) == [busyID])
+    }
+
     @Test func ignoresKeyFilesAndMissingFolder() throws {
         let harness = try MonitorHarness()
         try harness.folder.writeFile(named: "100.cbf1fbbf.key", contents: Data("secret".utf8))

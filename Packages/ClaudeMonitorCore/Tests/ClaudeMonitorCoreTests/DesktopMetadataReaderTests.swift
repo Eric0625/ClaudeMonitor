@@ -32,6 +32,22 @@ struct DesktopMetadataReaderTests {
         #expect(reader.metadata(for: SessionID(Fixture.idleSessionID))?.title == "Second")
     }
 
+    @Test func readsAgainAfterFailedReadWithSameModificationTime() throws {
+        let folder = try FixtureFolder()
+        let file = try folder.writeDesktopMetadata(hostSessionId: Fixture.idleSessionID, overrides: ["title": "First"])
+        let reader = DesktopMetadataReader(rootDirectory: folder.desktopSessionsDirectory, reloadInterval: 0, now: Date.init)
+        #expect(reader.metadata(for: SessionID(Fixture.idleSessionID))?.title == "First")
+        let modificationDate = Date().addingTimeInterval(10)
+
+        try Data(#"{"title":"Sec"#.utf8).write(to: file)
+        try FileManager.default.setAttributes([.modificationDate: modificationDate], ofItemAtPath: file.path)
+        #expect(reader.metadata(for: SessionID(Fixture.idleSessionID))?.title == "First")
+
+        try folder.writeDesktopMetadata(hostSessionId: Fixture.idleSessionID, overrides: ["title": "Second"])
+        try FileManager.default.setAttributes([.modificationDate: modificationDate], ofItemAtPath: file.path)
+        #expect(reader.metadata(for: SessionID(Fixture.idleSessionID))?.title == "Second")
+    }
+
     @Test func returnsNilForMissingOrUnsafeIdentifier() throws {
         let folder = try FixtureFolder()
         let reader = DesktopMetadataReader(rootDirectory: folder.desktopSessionsDirectory, reloadInterval: 0, now: Date.init)

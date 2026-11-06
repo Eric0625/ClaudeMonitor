@@ -54,9 +54,11 @@ public final class DesktopMetadataReader {
                 return locateAndRead(id)
             }
             if modificationDate != cached.modificationDate, now().timeIntervalSince(cached.readAt) >= reloadInterval {
-                cached.metadata = Self.read(cached.url) ?? cached.metadata
-                cached.modificationDate = modificationDate
                 cached.readAt = now()
+                if let metadata = Self.read(cached.url) {
+                    cached.metadata = metadata
+                    cached.modificationDate = modificationDate
+                }
                 files[id] = cached
             }
             return cached.metadata

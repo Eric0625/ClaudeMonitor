@@ -6,6 +6,23 @@ import SwiftUI
 @Observable
 final class PanelLayout {
     var maxListHeight: CGFloat = 600
+    var isVisible = false
+}
+
+/// Fixed heights, so that the panel size depends only on the panel state.
+enum PanelMetrics {
+    static let rowHeight: CGFloat = 46
+    static let headerHeight: CGFloat = 28
+    static let emptyHeight: CGFloat = 30
+    static let dividerHeight: CGFloat = 9
+    static let listPadding: CGFloat = 6
+
+    static func listHeight(runningRows: Int, finishedRows: Int) -> CGFloat {
+        func section(_ rows: Int) -> CGFloat {
+            headerHeight + (rows == 0 ? emptyHeight : CGFloat(rows) * rowHeight)
+        }
+        return listPadding * 2 + section(runningRows) + dividerHeight + section(finishedRows)
+    }
 }
 
 struct PanelActions {
@@ -22,8 +39,6 @@ struct SessionPanelView: View {
     let layout: PanelLayout
     let actions: PanelActions
 
-    @State private var listHeight: CGFloat = 0
-
     var body: some View {
         let state = monitor.panelState
         VStack(alignment: .leading, spacing: 0) {
@@ -32,25 +47,18 @@ struct SessionPanelView: View {
                 Divider()
             }
             ScrollView {
-                TimelineView(.periodic(from: .now, by: 1)) { context in
+                TimelineView(.animation(minimumInterval: 1, paused: !layout.isVisible)) { context in
                     VStack(alignment: .leading, spacing: 0) {
                         RunningSection(rows: state.running, now: context.date, open: actions.openSession)
-                        Divider().padding(.vertical, 4)
+                        Divider()
+                            .frame(height: PanelMetrics.dividerHeight)
                         FinishedSection(rows: state.recentlyFinished, now: context.date, open: actions.openSession)
                     }
-                    .padding(.vertical, 6)
-                }
-                .background {
-                    GeometryReader { proxy in
-                        Color.clear.preference(key: ListHeightKey.self, value: proxy.size.height)
-                    }
+                    .padding(.vertical, PanelMetrics.listPadding)
                 }
             }
             .scrollIndicators(.automatic)
-            .frame(height: min(listHeight, layout.maxListHeight))
-            .onPreferenceChange(ListHeightKey.self) { height in
-                listHeight = height
-            }
+            .frame(height: min(listHeight(for: state), layout.maxListHeight))
             Divider()
             PanelFooter(launchAtLogin: launchAtLogin, quit: actions.quit)
         }
@@ -65,12 +73,9 @@ struct SessionPanelView: View {
             actions.sizeChanged(size)
         }
     }
-}
 
-private struct ListHeightKey: PreferenceKey {
-    static let defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = max(value, nextValue())
+    private func listHeight(for state: PanelState) -> CGFloat {
+        PanelMetrics.listHeight(runningRows: state.running.count, finishedRows: state.recentlyFinished.count)
     }
 }
 
@@ -110,8 +115,8 @@ private struct SectionHeader: View {
         .foregroundStyle(.secondary)
         .textCase(.uppercase)
         .padding(.horizontal, 14)
-        .padding(.top, 6)
         .padding(.bottom, 4)
+        .frame(height: PanelMetrics.headerHeight, alignment: .bottom)
     }
 }
 
@@ -123,7 +128,7 @@ private struct EmptySectionText: View {
             .font(.callout)
             .foregroundStyle(.tertiary)
             .padding(.horizontal, 14)
-            .padding(.vertical, 6)
+            .frame(height: PanelMetrics.emptyHeight, alignment: .leading)
     }
 }
 
@@ -275,8 +280,8 @@ private struct SessionRowButton<Label: View>: View {
         Button(action: action) {
             label()
                 .padding(.horizontal, 8)
-                .padding(.vertical, 5)
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(height: PanelMetrics.rowHeight - 4)
                 .contentShape(Rectangle())
                 .background(
                     RoundedRectangle(cornerRadius: 6)
@@ -285,6 +290,7 @@ private struct SessionRowButton<Label: View>: View {
         }
         .buttonStyle(.plain)
         .padding(.horizontal, 6)
+        .frame(height: PanelMetrics.rowHeight)
         .onHover { isHovered = $0 }
         .help("Open in Claude")
         .accessibilityHint("Opens the session in Claude")

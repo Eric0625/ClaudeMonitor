@@ -117,7 +117,7 @@ The app uses these fields:
 Rules:
 
 - The app reads all files every second. It also reads at once when the folder changes. The timer is the source of truth because a process can stop without a file change.
-- If a file contains partial JSON, the app keeps the last good state of that file.
+- If a file contains partial JSON, the app keeps the last good state of that file. The app also keeps the last good state when a file is valid JSON but has no required field, for example while a spare process changes into a session.
 - If two live files have the same `hostSessionId`, the app uses the file with the newest `statusUpdatedAt`.
 - When a process stops, the session is "unloaded". The Claude app stops idle sessions that are not in focus after 30 minutes. Thus a stopped process does not mean that the user closed the session.
 - When a different process takes over a session between two reads, the app does not count a completed turn.
@@ -177,3 +177,6 @@ The Claude app has its own notification setting. To prevent duplicate notificati
 - The app shows only sessions of the Claude desktop app. VS Code and terminal sessions are filtered out.
 - When a whole turn starts and ends between two reads, the app does not know its duration. The notification then shows only the title.
 - The "Recently finished" list starts empty each time the app starts.
+- When a turn ends and the next turn starts between two reads, the app sees one long turn. The files look the same as a short wait for the user (`busy` to `waiting` to `busy`), which does not end a turn.
+- When the first read of a turn shows `waiting`, the app uses the start of the wait as the turn start. The time since the turn started and the duration are then too short.
+- A change from an unknown status to `idle` is not a completed turn, unless the app saw `busy` or `waiting` before it. This prevents false notifications for states that are not turns.

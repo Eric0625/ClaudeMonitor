@@ -113,6 +113,48 @@ struct HoverPresenterTests {
         #expect(visibility.changes == [true])
     }
 
+    @Test func leavingPanelWhileOnIconKeepsPanelOpen() {
+        presenter.pointerEntered(.icon)
+        scheduler.advance(by: 0.15)
+        presenter.pointerEntered(.panel)
+        presenter.pointerExited(.panel)
+        scheduler.advance(by: 1)
+
+        #expect(visibility.changes == [true])
+    }
+
+    @Test func suspendedPresenterIgnoresHover() {
+        presenter.suspend()
+        presenter.pointerEntered(.icon)
+        scheduler.advance(by: 1)
+
+        #expect(visibility.changes.isEmpty)
+    }
+
+    @Test func suspendHidesOpenPanelAndCancelsPendingOpen() {
+        presenter.iconClicked()
+        presenter.pointerEntered(.icon)
+        presenter.pointerExited(.icon)
+        presenter.pointerEntered(.icon)
+        presenter.suspend()
+        scheduler.advance(by: 1)
+
+        #expect(visibility.changes == [true, false])
+    }
+
+    @Test func resumeAllowsHoverAgain() {
+        presenter.suspend()
+        presenter.pointerEntered(.icon)
+        presenter.resume()
+        scheduler.advance(by: 1)
+        #expect(visibility.changes.isEmpty)
+
+        presenter.pointerExited(.icon)
+        presenter.pointerEntered(.icon)
+        scheduler.advance(by: 0.15)
+        #expect(visibility.changes == [true])
+    }
+
     @Test func dismissHidesAtOnce() {
         presenter.iconClicked()
         presenter.dismiss()

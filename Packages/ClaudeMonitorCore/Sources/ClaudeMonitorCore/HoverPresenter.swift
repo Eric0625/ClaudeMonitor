@@ -55,6 +55,7 @@ public final class HoverPresenter {
     private var pointerRegions: Set<Region> = []
     private var pendingOpen: HoverCancellation?
     private var pendingClose: HoverCancellation?
+    private var isSuspended = false
 
     public init(scheduler: HoverScheduling, onVisibilityChange: @escaping @MainActor (Bool) -> Void) {
         self.scheduler = scheduler
@@ -64,7 +65,7 @@ public final class HoverPresenter {
     public func pointerEntered(_ region: Region) {
         pointerRegions.insert(region)
         cancelClose()
-        guard region == .icon, !isPanelVisible, pendingOpen == nil else { return }
+        guard region == .icon, !isSuspended, !isPanelVisible, pendingOpen == nil else { return }
         pendingOpen = scheduler.schedule(after: Self.openDelay) { [weak self] in
             self?.pendingOpen = nil
             self?.setVisible(true)
@@ -90,6 +91,18 @@ public final class HoverPresenter {
     public func iconClicked() {
         cancelOpen()
         setVisible(true)
+    }
+
+    /// Closes the panel and ignores hover until `resume()`, for example while the status item menu is open.
+    public func suspend() {
+        isSuspended = true
+        cancelOpen()
+        cancelClose()
+        setVisible(false)
+    }
+
+    public func resume() {
+        isSuspended = false
     }
 
     /// Closes the panel at once, for example after the user opens a session.

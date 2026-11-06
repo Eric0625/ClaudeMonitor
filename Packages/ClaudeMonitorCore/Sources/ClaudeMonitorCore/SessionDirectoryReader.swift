@@ -34,7 +34,7 @@ final class SessionDirectoryReader {
         for name in sessionFileNames {
             let data = fileManager.contents(atPath: directory.appendingPathComponent(name).path)
             var result = data.map(SessionFileParser.parse) ?? .unreadable
-            if result == .unreadable, let lastGood = lastGoodResults[name] {
+            if let lastGood = lastGoodResults[name], Self.isIncomplete(result) {
                 result = lastGood
             }
 
@@ -61,6 +61,14 @@ final class SessionDirectoryReader {
             formatSupport = .supported
         }
         return SessionDirectoryScan(records: records, formatSupport: formatSupport)
+    }
+
+    /// A partial write, or a file that a running process rewrites in more than one step.
+    private static func isIncomplete(_ result: SessionFileParseResult) -> Bool {
+        switch result {
+        case .unreadable, .unsupported: true
+        case .session, .spare: false
+        }
     }
 
     private static func newestVersion(_ versions: [String?]) -> String? {
