@@ -13,7 +13,8 @@ struct DesktopMetadataReaderTests {
         #expect(metadata == DesktopSessionMetadata(
             title: "Card stop position fix",
             isArchived: false,
-            lastActivityAt: Date(timeIntervalSince1970: 1_793_924_252.282)
+            lastActivityAt: Date(timeIntervalSince1970: 1_793_924_252.282),
+            lastFocusedAt: Date(timeIntervalSince1970: 1_793_924_587.971)
         ))
     }
 

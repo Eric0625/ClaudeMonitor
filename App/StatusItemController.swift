@@ -19,8 +19,9 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         panelController = SessionPanelController(
             monitor: monitor,
             launchAtLogin: launchAtLogin,
-            openSession: { target in
+            openSession: { [weak monitor] id, target in
                 dismissPanel()
+                monitor?.markViewed(id)
                 openSession(target)
             }
         )

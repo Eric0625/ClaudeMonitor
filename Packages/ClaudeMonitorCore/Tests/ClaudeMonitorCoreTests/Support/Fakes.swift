@@ -25,6 +25,10 @@ final class TestClock {
     }
 }
 
+final class FrontmostState {
+    var isClaudeFrontmost = false
+}
+
 /// A monitor that reads a fixture folder, with a fake process table and notification center.
 @MainActor
 final class MonitorHarness {
@@ -32,12 +36,19 @@ final class MonitorHarness {
     let processes = FakeProcessInspector()
     let notifications = RecordingNotificationPoster()
     let clock = TestClock(now: Fixture.baseTime)
+    let frontmost = FrontmostState()
     let monitor: SessionMonitor
+
+    var isClaudeFrontmost: Bool {
+        get { frontmost.isClaudeFrontmost }
+        set { frontmost.isClaudeFrontmost = newValue }
+    }
 
     init(visibleSurfaces: Set<SessionSurface> = [.desktop]) throws {
         let folder = try FixtureFolder()
         self.folder = folder
         let clock = self.clock
+        let frontmost = self.frontmost
         monitor = SessionMonitor(
             configuration: SessionMonitor.Configuration(
                 sessionsDirectory: folder.sessionsDirectory,
@@ -47,7 +58,8 @@ final class MonitorHarness {
             ),
             processInspector: processes,
             notificationPoster: notifications,
-            now: { clock.now }
+            now: { clock.now },
+            isClaudeFrontmost: { frontmost.isClaudeFrontmost }
         )
     }
 

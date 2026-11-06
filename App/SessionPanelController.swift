@@ -43,7 +43,7 @@ final class SessionPanelController {
     private var contentSize = CGSize(width: SessionPanelView.width, height: 120)
     private var pointerTracking: PointerTrackingTarget?
 
-    init(monitor: SessionMonitor, launchAtLogin: LaunchAtLogin, openSession: @escaping (SessionOpenTarget) -> Void) {
+    init(monitor: SessionMonitor, launchAtLogin: LaunchAtLogin, openSession: @escaping (SessionID, SessionOpenTarget) -> Void) {
         let effectView = NSVisualEffectView()
         effectView.material = .popover
         effectView.blendingMode = .behindWindow

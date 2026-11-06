@@ -41,13 +41,19 @@ public final class SessionMonitor {
     @ObservationIgnored private let metadataReader: DesktopMetadataReader
     @ObservationIgnored private let notificationService: NotificationService
     @ObservationIgnored private let recentlyFinishedLimit: Int
+    @ObservationIgnored private let isClaudeFrontmost: @MainActor () -> Bool
+    @ObservationIgnored private var formatSupport = SessionFormatSupport.supported
+    /// The end time of the latest turn that the user saw, for each session.
+    @ObservationIgnored private var viewedTurnEnds: [SessionID: Date] = [:]
 
     public init(
         configuration: Configuration,
         processInspector: ProcessInspector,
         notificationPoster: NotificationPosting,
-        now: @escaping @MainActor () -> Date
+        now: @escaping @MainActor () -> Date,
+        isClaudeFrontmost: @escaping @MainActor () -> Bool
     ) {
+        self.isClaudeFrontmost = isClaudeFrontmost
         reader = SessionDirectoryReader(directory: configuration.sessionsDirectory)
         filter = LiveSessionFilter(processInspector: processInspector, visibleSurfaces: configuration.visibleSurfaces)
         store = SessionStore()
@@ -65,21 +71,55 @@ public final class SessionMonitor {
     public func refresh() -> [SessionEvent] {
         let scan = reader.read()
         let events = store.apply(filter.liveSessions(from: scan.records))
+        markTurnsSeenAsTheyEnded(events)
         notificationService.handle(events) { id in
             store.sessions[id].map { title(for: $0.record) } ?? id.rawValue
         }
-        let nextState = makePanelState(formatSupport: scan.formatSupport)
-        if nextState != panelState {
-            panelState = nextState
-        }
+        formatSupport = scan.formatSupport
+        publishPanelState()
         return events
+    }
+
+    /// Marks the latest finished turn of the session as read. Call it when the user opens the session from this app.
+    public func markViewed(_ id: SessionID) {
+        guard let turn = store.recentTurns.first(where: { $0.sessionID == id }) else { return }
+        viewedTurnEnds[id] = turn.endedAt
+        publishPanelState()
     }
 
     public func openTarget(for id: SessionID) -> SessionOpenTarget {
         SessionOpenTarget(sessionID: id, isArchived: metadataReader.metadata(for: id)?.isArchived ?? false)
     }
 
-    private func makePanelState(formatSupport: SessionFormatSupport) -> PanelState {
+    /// A turn that ends in the session that Claude shows in front is read.
+    private func markTurnsSeenAsTheyEnded(_ events: [SessionEvent]) {
+        let completedIDs = events.compactMap { event -> SessionID? in
+            if case .turnCompleted = event.kind { event.sessionID } else { nil }
+        }
+        guard !completedIDs.isEmpty, isClaudeFrontmost(), let focusedID = focusedSessionID() else { return }
+        for id in completedIDs where id == focusedID {
+            if let turn = store.recentTurns.first(where: { $0.sessionID == id }) {
+                viewedTurnEnds[id] = turn.endedAt
+            }
+        }
+    }
+
+    /// The live session with the newest `lastFocusedAt`.
+    private func focusedSessionID() -> SessionID? {
+        store.sessions.keys
+            .compactMap { id in metadataReader.metadata(for: id)?.lastFocusedAt.map { (id, $0) } }
+            .max { $0.1 < $1.1 }?
+            .0
+    }
+
+    private func publishPanelState() {
+        let nextState = makePanelState()
+        if nextState != panelState {
+            panelState = nextState
+        }
+    }
+
+    private func makePanelState() -> PanelState {
         let running = store.sessions.values.compactMap(runningRow).sorted(by: Self.runningOrder)
         let runningIDs = Set(running.map(\.id))
         let finishedTurns = store.recentTurns.filter { !runningIDs.contains($0.sessionID) }.prefix(recentlyFinishedLimit)
@@ -91,6 +131,7 @@ public final class SessionMonitor {
                 folderName: turn.record.folderName,
                 endedAt: turn.endedAt,
                 duration: turn.duration,
+                isUnread: isUnread(turn),
                 openTarget: openTarget(for: turn.sessionID)
             )
         }
@@ -130,6 +171,14 @@ public final class SessionMonitor {
             turnStartedAt: session.turnStartedAt,
             openTarget: openTarget(for: session.record.id)
         )
+    }
+
+    private func isUnread(_ turn: CompletedTurn) -> Bool {
+        let viewedAt = [metadataReader.metadata(for: turn.sessionID)?.lastFocusedAt, viewedTurnEnds[turn.sessionID]]
+            .compactMap { $0 }
+            .max()
+        guard let viewedAt else { return true }
+        return viewedAt < turn.endedAt
     }
 
     /// The desktop title, else the session name, else the folder name.

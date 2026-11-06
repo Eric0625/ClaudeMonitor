@@ -26,7 +26,7 @@ enum PanelMetrics {
 }
 
 struct PanelActions {
-    var openSession: (SessionOpenTarget) -> Void
+    var openSession: (SessionID, SessionOpenTarget) -> Void
     var quit: () -> Void
     var sizeChanged: (CGSize) -> Void
 }
@@ -135,7 +135,7 @@ private struct EmptySectionText: View {
 private struct RunningSection: View {
     let rows: [RunningSessionRow]
     let now: Date
-    let open: (SessionOpenTarget) -> Void
+    let open: (SessionID, SessionOpenTarget) -> Void
 
     var body: some View {
         SectionHeader(title: "Running", count: rows.count)
@@ -143,7 +143,7 @@ private struct RunningSection: View {
             EmptySectionText(text: "No running sessions")
         } else {
             ForEach(rows) { row in
-                SessionRowButton(action: { open(row.openTarget) }) {
+                SessionRowButton(action: { open(row.id, row.openTarget) }) {
                     RunningRowContent(row: row, now: now)
                 }
             }
@@ -154,7 +154,7 @@ private struct RunningSection: View {
 private struct FinishedSection: View {
     let rows: [FinishedTurnRow]
     let now: Date
-    let open: (SessionOpenTarget) -> Void
+    let open: (SessionID, SessionOpenTarget) -> Void
 
     var body: some View {
         SectionHeader(title: "Recently finished")
@@ -162,7 +162,7 @@ private struct FinishedSection: View {
             EmptySectionText(text: "No finished turns yet")
         } else {
             ForEach(rows) { row in
-                SessionRowButton(action: { open(row.openTarget) }) {
+                SessionRowButton(action: { open(row.sessionID, row.openTarget) }) {
                     FinishedRowContent(row: row, now: now)
                 }
             }
@@ -238,12 +238,12 @@ private struct FinishedRowContent: View {
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
-            Image(systemName: "checkmark.circle")
-                .foregroundStyle(.secondary)
+            Image(systemName: row.isUnread ? "checkmark.circle.fill" : "checkmark.circle")
+                .foregroundStyle(row.isUnread ? AnyShapeStyle(Color.accentColor) : AnyShapeStyle(.secondary))
                 .frame(width: 14)
             VStack(alignment: .leading, spacing: 2) {
                 Text(row.title)
-                    .font(.body.weight(.medium))
+                    .font(.body.weight(row.isUnread ? .bold : .regular))
                     .lineLimit(1)
                     .truncationMode(.tail)
                 HStack(spacing: 4) {
@@ -268,6 +268,7 @@ private struct FinishedRowContent: View {
                 .foregroundStyle(.secondary)
         }
         .accessibilityElement(children: .combine)
+        .accessibilityValue(row.isUnread ? "Unread" : "")
     }
 }
 

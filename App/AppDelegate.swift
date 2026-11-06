@@ -21,7 +21,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             configuration: SessionMonitor.Configuration(paths: paths),
             processInspector: SystemProcessInspector(),
             notificationPoster: notifications,
-            now: { Date() }
+            now: { Date() },
+            isClaudeFrontmost: {
+                NSWorkspace.shared.frontmostApplication?.bundleIdentifier == SessionOpenTarget.claudeBundleIdentifier
+            }
         )
         self.monitor = monitor
 
@@ -33,6 +36,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.statusItemController = statusItemController
 
         notifications.onOpenSession = { [weak monitor] id in
+            monitor?.markViewed(id)
             SessionOpener.open(monitor?.openTarget(for: id) ?? SessionOpenTarget(sessionID: id, isArchived: false))
         }
 

@@ -38,6 +38,8 @@ public struct FinishedTurnRow: Identifiable, Equatable, Sendable {
     public var endedAt: Date
     /// `nil` when the whole turn happened between two reads.
     public var duration: TimeInterval?
+    /// True when the user did not open the session after this turn ended, in Claude or from this app.
+    public var isUnread: Bool
     public var openTarget: SessionOpenTarget
 }
 

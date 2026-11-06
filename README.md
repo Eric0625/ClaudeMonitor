@@ -5,6 +5,7 @@ Claude Monitor is a macOS menu bar app. It shows the state of the Claude Code se
 - The app shows an icon in the menu bar. It has no Dock icon.
 - When the pointer stays on the icon, a panel shows the running sessions and the recently finished sessions.
 - "Recently finished" shows the latest completed turn of each session, for the 10 most recent sessions. A session that starts a new turn moves to "Running". Thus each session shows only one time.
+- A row in "Recently finished" shows a filled checkmark in the accent color and a bold title until you open the session after its turn ended. You can open it in the Claude app, or click its row or its notification in Claude Monitor.
 - When a session completes a turn, the app shows a macOS notification.
 
 ## Requirements
@@ -125,7 +126,7 @@ Rules:
 
 ### Desktop session metadata
 
-The Claude app keeps one file for each session at `~/Library/Application Support/Claude/claude-code-sessions/<uuid>/<uuid>/<hostSessionId>.json`. The app reads `title` (the sidebar title), `isArchived`, and `lastActivityAt`. These files can be large. The app finds a file by name, caches its path, and reads it again only when its modification time changes, at most every 5 seconds.
+The Claude app keeps one file for each session at `~/Library/Application Support/Claude/claude-code-sessions/<uuid>/<uuid>/<hostSessionId>.json`. The app reads `title` (the sidebar title), `isArchived`, `lastActivityAt`, and `lastFocusedAt` (the last time that you opened the session in the Claude app). A finished turn is unread when it ended after `lastFocusedAt` and after the last click on its row or its notification in Claude Monitor. The Claude app does not change `lastFocusedAt` while you look at a session. Thus a turn is also read when it ends while Claude is the frontmost app and its session has the newest `lastFocusedAt` of all live sessions. These files can be large. The app finds a file by name, caches its path, and reads it again only when its modification time changes, at most every 5 seconds.
 
 ### Deep links
 
@@ -178,6 +179,7 @@ The Claude app has its own notification setting. To prevent duplicate notificati
 - The app shows only sessions of the Claude desktop app. VS Code and terminal sessions are filtered out.
 - When a whole turn starts and ends between two reads, the app does not know its duration. The notification then shows only the title.
 - The "Recently finished" list starts empty each time the app starts.
+- When the Claude app shows more than one session, for example in split view, only a turn that ends in the session that you opened last is read at once. When Claude is the frontmost app but you look at a different screen, a turn that ends in the front session is read.
 - When a turn ends and the next turn starts between two reads, the app sees one long turn. The files look the same as a short wait for the user (`busy` to `waiting` to `busy`), which does not end a turn.
 - When the first read of a turn shows `waiting`, the app uses the start of the wait as the turn start. The time since the turn started and the duration are then too short.
 - A change from an unknown status to `idle` is not a completed turn, unless the app saw `busy` or `waiting` before it. This prevents false notifications for states that are not turns.

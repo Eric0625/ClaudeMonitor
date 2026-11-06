@@ -6,11 +6,14 @@ public struct DesktopSessionMetadata: Equatable, Sendable {
     public var title: String?
     public var isArchived: Bool
     public var lastActivityAt: Date?
+    /// The last time that the user opened the session in the Claude app.
+    public var lastFocusedAt: Date?
 
-    public init(title: String?, isArchived: Bool, lastActivityAt: Date?) {
+    public init(title: String?, isArchived: Bool, lastActivityAt: Date?, lastFocusedAt: Date?) {
         self.title = title
         self.isArchived = isArchived
         self.lastActivityAt = lastActivityAt
+        self.lastFocusedAt = lastFocusedAt
     }
 }
 
@@ -113,11 +116,15 @@ public final class DesktopMetadataReader {
         else {
             return nil
         }
-        let lastActivity = (object["lastActivityAt"] as? NSNumber).map { Date(timeIntervalSince1970: $0.doubleValue / 1000) }
         return DesktopSessionMetadata(
             title: object["title"] as? String,
             isArchived: object["isArchived"] as? Bool ?? false,
-            lastActivityAt: lastActivity
+            lastActivityAt: epochMillisecondsDate(object["lastActivityAt"]),
+            lastFocusedAt: epochMillisecondsDate(object["lastFocusedAt"])
         )
+    }
+
+    private static func epochMillisecondsDate(_ value: Any?) -> Date? {
+        (value as? NSNumber).map { Date(timeIntervalSince1970: $0.doubleValue / 1000) }
     }
 }
