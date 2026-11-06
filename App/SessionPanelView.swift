@@ -238,9 +238,17 @@ private struct FinishedRowContent: View {
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
-            Image(systemName: row.isUnread ? "checkmark.circle.fill" : "checkmark.circle")
-                .foregroundStyle(row.isUnread ? AnyShapeStyle(Color.accentColor) : AnyShapeStyle(.secondary))
-                .frame(width: 14)
+            Group {
+                if row.isUnread {
+                    Image(systemName: "circle.fill")
+                        .font(.system(size: 9))
+                        .foregroundStyle(Color.accentColor)
+                } else {
+                    Image(systemName: "checkmark.circle")
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .frame(width: 14)
             VStack(alignment: .leading, spacing: 2) {
                 Text(row.title)
                     .font(.body.weight(row.isUnread ? .bold : .regular))
