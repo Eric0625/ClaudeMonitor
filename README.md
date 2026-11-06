@@ -142,6 +142,18 @@ A click on a row or on a notification opens `claude://code/continue?session=<hos
 
 If the desktop metadata format changes, change `DesktopMetadataReader` and its tests in the same way.
 
+## App icon
+
+The source of the app icon is `design/AppIcon.svg` (1024 × 1024 px, with the icon body at 824 × 824 px). The script `scripts/make-app-icon.swift` renders it with the SVG support of macOS into `App/Assets.xcassets/AppIcon.appiconset` (16 px to 1024 px). Xcode compiles this set into `Assets.car` and `AppIcon.icns`.
+
+After you change the SVG, render the icon again:
+
+```bash
+swift scripts/make-app-icon.swift
+```
+
+The SVG renderer of macOS ignores SVG filters. Thus the SVG draws its shadows with stacked translucent shapes. Do not use `filter`, `feGaussianBlur`, or `feDropShadow` in the SVG.
+
 ## Notifications
 
 The app shows "Turn completed" with the session title and the turn duration. A click on the notification opens the session. The app does not show notifications for the state that exists when it starts.
@@ -157,10 +169,11 @@ The Claude app has its own notification setting. To prevent duplicate notificati
 | `Packages/ClaudeMonitorCore/Tests/` | Behavior scenarios, unit tests, and fixtures made from real files. |
 | `project.yml` | The XcodeGen project definition. |
 | `scripts/ExportOptions.plist` | Export options for Developer ID. |
+| `design/AppIcon.svg` | The source of the app icon. |
+| `scripts/make-app-icon.swift` | Renders the app icon into the asset catalog. |
 
 ## Known limits of version 1
 
 - The app shows only sessions of the Claude desktop app. VS Code and terminal sessions are filtered out.
 - When a whole turn starts and ends between two reads, the app does not know its duration. The notification then shows only the title.
 - The "Recently finished" list starts empty each time the app starts.
-- The app has no custom app icon.

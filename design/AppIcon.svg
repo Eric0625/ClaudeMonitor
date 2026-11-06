@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4554C4"/>
+      <stop offset="1" stop-color="#1A1F5E"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.3" cy="0.12" r="0.75">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#E6E9F7"/>
+    </linearGradient>
+    <linearGradient id="running" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5BE07F"/>
+      <stop offset="1" stop-color="#25B04B"/>
+    </linearGradient>
+    <linearGradient id="waiting" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFC04D"/>
+      <stop offset="1" stop-color="#FF8A00"/>
+    </linearGradient>
+    <clipPath id="squircle">
+      <rect x="100" y="100" width="824" height="824" rx="184"/>
+    </clipPath>
+  </defs>
+
+  <!-- Icon shadow: stacked layers, because macOS ignores SVG filters -->
+  <g fill="#000000" fill-opacity="0.026">
+    <rect x="98" y="114" width="828" height="828" rx="186"/>
+    <rect x="96" y="112" width="832" height="832" rx="188"/>
+    <rect x="94" y="110" width="836" height="836" rx="190"/>
+    <rect x="92" y="108" width="840" height="840" rx="192"/>
+    <rect x="90" y="106" width="844" height="844" rx="194"/>
+    <rect x="88" y="104" width="848" height="848" rx="196"/>
+    <rect x="86" y="102" width="852" height="852" rx="198"/>
+    <rect x="84" y="100" width="856" height="856" rx="200"/>
+    <rect x="82" y="98" width="860" height="860" rx="202"/>
+    <rect x="80" y="96" width="864" height="864" rx="204"/>
+    <rect x="78" y="94" width="868" height="868" rx="206"/>
+    <rect x="76" y="92" width="872" height="872" rx="208"/>
+  </g>
+
+  <!-- Background -->
+  <rect x="100" y="100" width="824" height="824" rx="184" fill="url(#background)"/>
+  <g clip-path="url(#squircle)">
+    <rect x="100" y="100" width="824" height="824" fill="url(#glow)"/>
+    <!-- Menu bar -->
+    <rect x="100" y="100" width="824" height="104" fill="#FFFFFF" fill-opacity="0.14"/>
+    <rect x="100" y="203" width="824" height="3" fill="#FFFFFF" fill-opacity="0.18"/>
+    <rect x="196" y="140" width="96" height="24" rx="12" fill="#FFFFFF" fill-opacity="0.35"/>
+    <rect x="316" y="140" width="64" height="24" rx="12" fill="#FFFFFF" fill-opacity="0.35"/>
+  </g>
+
+  <!-- Menu bar status glyph -->
+  <path d="M700 118 C705 140 712 147 734 152 C712 157 705 164 700 186 C695 164 688 157 666 152 C688 147 695 140 700 118 Z" fill="#FFFFFF"/>
+
+  <!-- Panel shadow -->
+  <g fill="#0B0E33" fill-opacity="0.055">
+    <rect x="209" y="275" width="606" height="572" rx="59"/>
+    <rect x="206" y="272" width="612" height="578" rx="62"/>
+    <rect x="203" y="269" width="618" height="584" rx="65"/>
+    <rect x="200" y="266" width="624" height="590" rx="68"/>
+    <rect x="197" y="263" width="630" height="596" rx="71"/>
+    <rect x="194" y="260" width="636" height="602" rx="74"/>
+    <rect x="191" y="257" width="642" height="608" rx="77"/>
+    <rect x="188" y="254" width="648" height="614" rx="80"/>
+  </g>
+
+  <!-- Panel -->
+  <path d="M268 262 H668 L700 230 L732 262 H756 A56 56 0 0 1 812 318 V772 A56 56 0 0 1 756 828 H268 A56 56 0 0 1 212 772 V318 A56 56 0 0 1 268 262 Z" fill="url(#card)"/>
+
+  <!-- Row dividers -->
+  <rect x="252" y="466" width="520" height="4" rx="2" fill="#1A1F5E" fill-opacity="0.08"/>
+  <rect x="252" y="626" width="520" height="4" rx="2" fill="#1A1F5E" fill-opacity="0.08"/>
+
+  <!-- Running row -->
+  <circle cx="296" cy="388" r="36" fill="url(#running)"/>
+  <rect x="362" y="360" width="290" height="30" rx="15" fill="#1A1F5E" fill-opacity="0.85"/>
+  <rect x="362" y="404" width="190" height="22" rx="11" fill="#1A1F5E" fill-opacity="0.28"/>
+  <rect x="688" y="372" width="76" height="22" rx="11" fill="#1A1F5E" fill-opacity="0.28"/>
+
+  <!-- Waiting row -->
+  <circle cx="296" cy="548" r="36" fill="url(#waiting)"/>
+  <rect x="362" y="520" width="250" height="30" rx="15" fill="#1A1F5E" fill-opacity="0.85"/>
+  <rect x="362" y="564" width="160" height="22" rx="11" fill="#FF8A00" fill-opacity="0.55"/>
+  <rect x="688" y="532" width="76" height="22" rx="11" fill="#1A1F5E" fill-opacity="0.28"/>
+
+  <!-- Finished row -->
+  <circle cx="296" cy="708" r="31" fill="none" stroke="#8C92BD" stroke-width="10"/>
+  <path d="M280 709 L292 721 L314 697" fill="none" stroke="#8C92BD" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="362" y="680" width="270" height="30" rx="15" fill="#1A1F5E" fill-opacity="0.45"/>
+  <rect x="362" y="724" width="150" height="22" rx="11" fill="#1A1F5E" fill-opacity="0.2"/>
+  <rect x="688" y="692" width="76" height="22" rx="11" fill="#1A1F5E" fill-opacity="0.2"/>
+</svg>

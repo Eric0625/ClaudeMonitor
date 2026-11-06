@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		1045BC8F854431817C584E70 /* SessionPanelController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85A5060EB7588D9F04600113 /* SessionPanelController.swift */; };
+		32FBEEA325F61B992FBDD3CF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2255194FB20EED7B7DC78E7F /* Assets.xcassets */; };
 		4AF5A07F777D62D0A06093CB /* LaunchAtLogin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A34018D2A408C49808727A3B /* LaunchAtLogin.swift */; };
 		691E30130D8277DF3FDC9EF1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B8BFEBA39016F0EF23A100C /* AppDelegate.swift */; };
 		73B9748CD0C8690C6877D1DF /* SessionPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9124B2A7CE41E3629A58327F /* SessionPanelView.swift */; };
@@ -20,6 +21,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		2255194FB20EED7B7DC78E7F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		403CD5E04D77B4DC03B52B3A /* UserNotificationPoster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserNotificationPoster.swift; sourceTree = "<group>"; };
 		4B8BFEBA39016F0EF23A100C /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		5DA160215DBDA78918E0333F /* ClaudeMonitorCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = ClaudeMonitorCore; path = Packages/ClaudeMonitorCore; sourceTree = SOURCE_ROOT; };
@@ -74,6 +76,7 @@
 			isa = PBXGroup;
 			children = (
 				4B8BFEBA39016F0EF23A100C /* AppDelegate.swift */,
+				2255194FB20EED7B7DC78E7F /* Assets.xcassets */,
 				A34018D2A408C49808727A3B /* LaunchAtLogin.swift */,
 				C6DF40CD29F9E735CED443FA /* main.swift */,
 				ADF71ABBA1D5735981CACE54 /* OnboardingWindow.swift */,
@@ -94,6 +97,7 @@
 			buildConfigurationList = 458C8ECDDDF94448F9073656 /* Build configuration list for PBXNativeTarget "ClaudeMonitor" */;
 			buildPhases = (
 				E78E550434E6FDA8035F8938 /* Sources */,
+				CB9A5FC51EE298759396362B /* Resources */,
 				4CAC20F961A216BB3DB743E0 /* Frameworks */,
 			);
 			buildRules = (
@@ -144,6 +148,17 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		CB9A5FC51EE298759396362B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				32FBEEA325F61B992FBDD3CF /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		E78E550434E6FDA8035F8938 /* Sources */ = {
