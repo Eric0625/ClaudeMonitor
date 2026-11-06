@@ -76,6 +76,7 @@ struct UnreadTurnTests {
         try harness.completeTurn(pid: 100, from: 0, to: 95)
 
         #expect(isUnread(harness) == false)
+        #expect(harness.notifications.posted.isEmpty)
     }
 
     @Test func turnEndingWhileClaudeIsNotFrontmostIsUnread() throws {
@@ -91,6 +92,7 @@ struct UnreadTurnTests {
         try harness.completeTurn(pid: 100, from: 0, to: 95)
 
         #expect(isUnread(harness) == true)
+        #expect(harness.notifications.posted.count == 1)
     }
 
     @Test func turnEndingWhileOtherSessionIsFocusedIsUnread() throws {
@@ -112,6 +114,7 @@ struct UnreadTurnTests {
         try harness.completeTurn(pid: 100, from: 0, to: 95)
 
         #expect(isUnread(harness) == true)
+        #expect(harness.notifications.posted.count == 1)
     }
 
     @Test func turnEndingInSessionNeverFocusedIsUnread() throws {

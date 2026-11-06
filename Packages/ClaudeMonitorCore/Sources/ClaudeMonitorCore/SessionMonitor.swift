@@ -71,8 +71,10 @@ public final class SessionMonitor {
     public func refresh() -> [SessionEvent] {
         let scan = reader.read()
         let events = store.apply(filter.liveSessions(from: scan.records))
-        markTurnsSeenAsTheyEnded(events)
-        notificationService.handle(events) { id in
+        let seenIDs = markTurnsSeenAsTheyEnded(events)
+        // The user saw these turns end in Claude.
+        let unseenEvents = events.filter { !seenIDs.contains($0.sessionID) }
+        notificationService.handle(unseenEvents) { id in
             store.sessions[id].map { title(for: $0.record) } ?? id.rawValue
         }
         formatSupport = scan.formatSupport
@@ -92,16 +94,20 @@ public final class SessionMonitor {
     }
 
     /// A turn that ends in the session that Claude shows in front is read.
-    private func markTurnsSeenAsTheyEnded(_ events: [SessionEvent]) {
+    /// - Returns: The sessions whose turns the user saw end.
+    private func markTurnsSeenAsTheyEnded(_ events: [SessionEvent]) -> Set<SessionID> {
         let completedIDs = events.compactMap { event -> SessionID? in
             if case .turnCompleted = event.kind { event.sessionID } else { nil }
         }
-        guard !completedIDs.isEmpty, isClaudeFrontmost(), let focusedID = focusedSessionID() else { return }
+        guard !completedIDs.isEmpty, isClaudeFrontmost(), let focusedID = focusedSessionID() else { return [] }
+        var seenIDs: Set<SessionID> = []
         for id in completedIDs where id == focusedID {
             if let turn = store.recentTurns.first(where: { $0.sessionID == id }) {
                 viewedTurnEnds[id] = turn.endedAt
+                seenIDs.insert(id)
             }
         }
+        return seenIDs
     }
 
     /// The live session with the newest `lastFocusedAt`.

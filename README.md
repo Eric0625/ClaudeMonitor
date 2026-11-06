@@ -6,7 +6,7 @@ Claude Monitor is a macOS menu bar app. It shows the state of the Claude Code se
 - When the pointer stays on the icon, a panel shows the running sessions and the recently finished sessions.
 - "Recently finished" shows the latest completed turn of each session, for the 10 most recent sessions. A session that starts a new turn moves to "Running". Thus each session shows only one time.
 - A row in "Recently finished" shows an unread dot in the accent color and a bold title until you open the session after its turn ended. You can open it in the Claude app, or click its row or its notification in Claude Monitor.
-- When a session completes a turn, the app shows a macOS notification.
+- When a session completes a turn, the app shows a macOS notification. It shows no notification when you look at that session in the Claude app as the turn ends.
 
 ## Requirements
 
@@ -158,7 +158,7 @@ The SVG renderer of macOS ignores SVG filters. Thus the SVG draws its shadows wi
 
 ## Notifications
 
-The app shows "Turn completed" with the session title and the turn duration. A click on the notification opens the session. The app does not show notifications for the state that exists when it starts.
+The app shows "Turn completed" with the session title and the turn duration. A click on the notification opens the session. The app does not show notifications for the state that exists when it starts. It also does not show a notification for a turn that is read as it ends, because Claude is the frontmost app and shows that session (see the desktop metadata section).
 
 The Claude app has its own notification setting. To prevent duplicate notifications, turn off one of the two: the notifications in the Claude app settings, or Claude Monitor in **System Settings > Notifications**.
 
