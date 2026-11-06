@@ -146,17 +146,19 @@ public final class SessionMonitor {
         let formatWarning: String?
         switch formatSupport {
         case .unsupported(let version):
-            icon = .unsupported
+            icon = StatusIconState(activity: .unsupported, unreadCount: 0)
             formatWarning = "Unsupported Claude Code session format (version \(version ?? "unknown"))"
         case .supported:
             formatWarning = nil
+            let activity: StatusActivity
             if running.contains(where: \.isWaiting) {
-                icon = .waiting(runningCount: running.count)
+                activity = .waiting(runningCount: running.count)
             } else if !running.isEmpty {
-                icon = .running(count: running.count)
+                activity = .running(count: running.count)
             } else {
-                icon = .noSessions
+                activity = .noSessions
             }
+            icon = StatusIconState(activity: activity, unreadCount: finished.count(where: \.isUnread))
         }
         return PanelState(running: running, recentlyFinished: finished, formatWarning: formatWarning, icon: icon)
     }

@@ -43,12 +43,25 @@ public struct FinishedTurnRow: Identifiable, Equatable, Sendable {
     public var openTarget: SessionOpenTarget
 }
 
-/// The menu bar icon states.
-public enum StatusIconState: Equatable, Sendable {
+/// What the running sessions show in the menu bar.
+public enum StatusActivity: Equatable, Sendable {
+    /// No session runs.
     case noSessions
     case running(count: Int)
     case waiting(runningCount: Int)
     case unsupported
+}
+
+/// Everything that the menu bar icon shows.
+public struct StatusIconState: Equatable, Sendable {
+    public var activity: StatusActivity
+    /// The number of unread rows in "Recently finished".
+    public var unreadCount: Int
+
+    public init(activity: StatusActivity, unreadCount: Int) {
+        self.activity = activity
+        self.unreadCount = unreadCount
+    }
 }
 
 /// Everything that the menu bar icon and the panel show.
@@ -61,5 +74,10 @@ public struct PanelState: Equatable, Sendable {
     public var formatWarning: String?
     public var icon: StatusIconState
 
-    public static let empty = PanelState(running: [], recentlyFinished: [], formatWarning: nil, icon: .noSessions)
+    public static let empty = PanelState(
+        running: [],
+        recentlyFinished: [],
+        formatWarning: nil,
+        icon: StatusIconState(activity: .noSessions, unreadCount: 0)
+    )
 }

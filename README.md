@@ -3,6 +3,15 @@
 Claude Monitor is a macOS menu bar app. It shows the state of the Claude Code sessions that run in the Claude desktop app (Code tab).
 
 - The app shows an icon in the menu bar. It has no Dock icon.
+- The menu bar icon shows these states:
+
+  | Icon | Meaning |
+  | --- | --- |
+  | Dimmed sparkle | No session runs and no session is unread. |
+  | Sparkle and a number | The number of running sessions. |
+  | Raised hand and a number | One or more sessions wait for you. The number is the count of all running sessions. |
+  | Dot and a number | The number of unread rows in "Recently finished". It shows next to the sparkle or the raised hand, or alone when no session runs. |
+  | Warning triangle | No session file has a known format. |
 - When the pointer stays on the icon, a panel shows the running sessions and the recently finished sessions.
 - "Recently finished" shows the latest completed turn of each session, for the 10 most recent sessions. A session that starts a new turn moves to "Running". Thus each session shows only one time.
 - A row in "Recently finished" shows an unread dot in the accent color and a bold title until you open the session after its turn ended. You can open it in the Claude app, or click its row or its notification in Claude Monitor.

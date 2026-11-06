@@ -17,7 +17,7 @@ struct SessionMonitorTests {
             SessionEvent(sessionID: busyID, kind: .started),
             SessionEvent(sessionID: busyID, kind: .running),
         ])
-        #expect(harness.monitor.panelState.icon == .running(count: 1))
+        #expect(harness.monitor.panelState.icon.activity == .running(count: 1))
     }
 
     @Test func replacedProcessDoesNotCompleteTurn() throws {
@@ -116,7 +116,7 @@ struct SessionMonitorTests {
         harness.refresh()
 
         #expect(harness.monitor.panelState.formatWarning == "Unsupported Claude Code session format (version 3.0.0)")
-        #expect(harness.monitor.panelState.icon == .unsupported)
+        #expect(harness.monitor.panelState.icon.activity == .unsupported)
     }
 
     @Test func noWarningWhenOneFileHasKnownFormat() throws {
@@ -127,7 +127,7 @@ struct SessionMonitorTests {
         harness.refresh()
 
         #expect(harness.monitor.panelState.formatWarning == nil)
-        #expect(harness.monitor.panelState.icon == .noSessions)
+        #expect(harness.monitor.panelState.icon.activity == .noSessions)
     }
 
     @Test func turnCompletesAfterPartialWriteRecovers() throws {
@@ -207,7 +207,7 @@ struct SessionMonitorTests {
 
         #expect(events.isEmpty)
         #expect(harness.monitor.panelState.formatWarning == nil)
-        #expect(harness.monitor.panelState.icon == .noSessions)
+        #expect(harness.monitor.panelState.icon.activity == .noSessions)
     }
 
     @Test func incompleteRewriteKeepsLastGoodSession() throws {
@@ -275,7 +275,7 @@ struct SessionMonitorTests {
 
         harness.refresh()
 
-        #expect(harness.monitor.panelState.icon == .waiting(runningCount: 2))
+        #expect(harness.monitor.panelState.icon.activity == .waiting(runningCount: 2))
         #expect(harness.monitor.panelState.running.first?.id == SessionID(Fixture.waitingSessionID))
     }
 }

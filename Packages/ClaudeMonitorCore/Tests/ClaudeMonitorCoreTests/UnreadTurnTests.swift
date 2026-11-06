@@ -137,4 +137,56 @@ struct UnreadTurnTests {
 
         #expect(isUnread(harness) == true)
     }
+
+    // MARK: Menu bar icon
+
+    @Test func iconShowsUnreadCountWhenNoSessionRuns() throws {
+        let harness = try harnessWithFinishedTurn()
+
+        #expect(harness.monitor.panelState.icon == StatusIconState(activity: .noSessions, unreadCount: 1))
+    }
+
+    @Test func iconShowsRunningAndUnreadCounts() throws {
+        let harness = try harnessWithFinishedTurn()
+        try harness.writeSession("session-idle", pid: 101, status: "busy", at: 100)
+        harness.refresh()
+
+        #expect(harness.monitor.panelState.icon == StatusIconState(activity: .running(count: 1), unreadCount: 1))
+    }
+
+    @Test func iconShowsWaitingAndUnreadCounts() throws {
+        let harness = try harnessWithFinishedTurn()
+        try harness.writeSession("session-waiting", pid: 101)
+        harness.refresh()
+
+        #expect(harness.monitor.panelState.icon == StatusIconState(activity: .waiting(runningCount: 1), unreadCount: 1))
+    }
+
+    @Test func openingFromPanelClearsUnreadCount() throws {
+        let harness = try harnessWithFinishedTurn()
+
+        harness.monitor.markViewed(busyID)
+
+        #expect(harness.monitor.panelState.icon.unreadCount == 0)
+    }
+
+    @Test func turnReadInClaudeIsNotCounted() throws {
+        let harness = try harnessWithFinishedTurn()
+        try harness.folder.writeDesktopMetadata(
+            hostSessionId: Fixture.busySessionID,
+            overrides: ["lastFocusedAt": Fixture.epochMilliseconds(120)]
+        )
+        harness.refresh()
+
+        #expect(harness.monitor.panelState.icon == StatusIconState(activity: .noSessions, unreadCount: 0))
+    }
+
+    @Test func unsupportedFormatHidesUnreadCount() throws {
+        let harness = try harnessWithFinishedTurn()
+        try harness.folder.removeSession(pid: 100)
+        try harness.folder.writeRawSession(pid: 101, contents: Fixture.data("session-unsupported"))
+        harness.refresh()
+
+        #expect(harness.monitor.panelState.icon == StatusIconState(activity: .unsupported, unreadCount: 0))
+    }
 }

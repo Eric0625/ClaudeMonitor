@@ -52,10 +52,11 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         guard state.icon != renderedIcon, let button = statusItem.button else { return }
         renderedIcon = state.icon
 
+        let unreadCount = state.icon.unreadCount
         let symbolName: String
         let count: Int?
-        let label: String
-        switch state.icon {
+        var label: String
+        switch state.icon.activity {
         case .noSessions:
             symbolName = "sparkle"
             count = nil
@@ -74,14 +75,45 @@ final class StatusItemController: NSObject, NSMenuDelegate {
             label = "Unsupported Claude Code session format"
         }
 
-        let image = NSImage(systemSymbolName: symbolName, accessibilityDescription: label)
-        image?.isTemplate = true
-        button.image = image
-        button.imagePosition = count == nil ? .imageOnly : .imageLeading
-        button.title = count.map { " \($0)" } ?? ""
-        button.appearsDisabled = state.icon == .noSessions
+        // Unread sessions alone replace the dimmed idle icon.
+        let showsActivity = state.icon.activity != .noSessions || unreadCount == 0
+        let font = NSFont.monospacedDigitSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)
+        let title = NSMutableAttributedString()
+        if showsActivity, let count {
+            title.append(NSAttributedString(string: " \(count)", attributes: [.font: font]))
+        }
+        if unreadCount > 0 {
+            if showsActivity {
+                title.append(NSAttributedString(string: "  ", attributes: [.font: font]))
+            }
+            title.append(Self.unreadDot(font: font))
+            title.append(NSAttributedString(string: " \(unreadCount)", attributes: [.font: font]))
+            let unreadLabel = unreadCount == 1 ? "1 unread session" : "\(unreadCount) unread sessions"
+            label = showsActivity ? "\(label), \(unreadLabel)" : unreadLabel
+        }
+
+        if showsActivity {
+            let image = NSImage(systemSymbolName: symbolName, accessibilityDescription: nil)
+            image?.isTemplate = true
+            button.image = image
+            button.imagePosition = title.length == 0 ? .imageOnly : .imageLeading
+        } else {
+            button.image = nil
+            button.imagePosition = .noImage
+        }
+        button.attributedTitle = title
+        button.appearsDisabled = state.icon.activity == .noSessions && unreadCount == 0
         button.setAccessibilityLabel(label)
         button.toolTip = nil
+    }
+
+    /// A text glyph, so that it takes the menu bar text color.
+    private static func unreadDot(font: NSFont) -> NSAttributedString {
+        let dotFont = NSFont.systemFont(ofSize: (font.pointSize * 0.75).rounded())
+        return NSAttributedString(string: "\u{25CF}", attributes: [
+            .font: dotFont,
+            .baselineOffset: ((font.capHeight - dotFont.capHeight) / 2).rounded(),
+        ])
     }
 
     private func configureButton(presenter: HoverPresenter) {

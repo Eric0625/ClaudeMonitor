@@ -70,7 +70,7 @@ struct BehaviorScenarioTests {
         #expect(row.activityText == "Permission prompt")
         #expect(row.turnStartedAt == Fixture.date(0))
         #expect(harness.notifications.posted.isEmpty)
-        #expect(harness.monitor.panelState.icon == .waiting(runningCount: 1))
+        #expect(harness.monitor.panelState.icon.activity == .waiting(runningCount: 1))
     }
 
     // MARK: 4
