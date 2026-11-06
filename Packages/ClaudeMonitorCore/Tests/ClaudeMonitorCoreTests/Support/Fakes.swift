@@ -74,6 +74,15 @@ final class MonitorHarness {
         processes.startTimes[pid] = Fixture.processStart
     }
 
+    /// Writes `busy` at `start` and `idle` at `end`, with a read after each write.
+    func completeTurn(pid: Int32, from start: TimeInterval, to end: TimeInterval, hostSessionId: String? = nil) throws {
+        let overrides: [String: Any] = hostSessionId.map { ["hostSessionId": $0] } ?? [:]
+        try writeSession("session-busy", pid: pid, status: "busy", at: start, overrides: overrides)
+        refresh()
+        try writeSession("session-busy", pid: pid, status: "idle", at: end, overrides: overrides)
+        refresh()
+    }
+
     @discardableResult
     func refresh(advancingClockBy seconds: TimeInterval = 1) -> [SessionEvent] {
         clock.now = clock.now.addingTimeInterval(seconds)

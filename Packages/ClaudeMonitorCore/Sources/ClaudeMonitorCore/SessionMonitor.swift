@@ -9,7 +9,8 @@ public final class SessionMonitor {
         public var sessionsDirectory: URL
         public var desktopSessionsDirectory: URL
         public var visibleSurfaces: Set<SessionSurface>
-        public var recentTurnLimit: Int
+        /// The maximum number of sessions in "Recently finished".
+        public var recentlyFinishedLimit: Int
         /// The minimum time between two reads of the same desktop metadata file.
         public var metadataReloadInterval: TimeInterval
 
@@ -17,13 +18,13 @@ public final class SessionMonitor {
             sessionsDirectory: URL,
             desktopSessionsDirectory: URL,
             visibleSurfaces: Set<SessionSurface> = [.desktop],
-            recentTurnLimit: Int = 10,
+            recentlyFinishedLimit: Int = 10,
             metadataReloadInterval: TimeInterval = 5
         ) {
             self.sessionsDirectory = sessionsDirectory
             self.desktopSessionsDirectory = desktopSessionsDirectory
             self.visibleSurfaces = visibleSurfaces
-            self.recentTurnLimit = recentTurnLimit
+            self.recentlyFinishedLimit = recentlyFinishedLimit
             self.metadataReloadInterval = metadataReloadInterval
         }
 
@@ -39,6 +40,7 @@ public final class SessionMonitor {
     @ObservationIgnored private let store: SessionStore
     @ObservationIgnored private let metadataReader: DesktopMetadataReader
     @ObservationIgnored private let notificationService: NotificationService
+    @ObservationIgnored private let recentlyFinishedLimit: Int
 
     public init(
         configuration: Configuration,
@@ -48,7 +50,8 @@ public final class SessionMonitor {
     ) {
         reader = SessionDirectoryReader(directory: configuration.sessionsDirectory)
         filter = LiveSessionFilter(processInspector: processInspector, visibleSurfaces: configuration.visibleSurfaces)
-        store = SessionStore(recentTurnLimit: configuration.recentTurnLimit)
+        store = SessionStore()
+        recentlyFinishedLimit = configuration.recentlyFinishedLimit
         metadataReader = DesktopMetadataReader(
             rootDirectory: configuration.desktopSessionsDirectory,
             reloadInterval: configuration.metadataReloadInterval,
@@ -78,9 +81,11 @@ public final class SessionMonitor {
 
     private func makePanelState(formatSupport: SessionFormatSupport) -> PanelState {
         let running = store.sessions.values.compactMap(runningRow).sorted(by: Self.runningOrder)
-        let finished = store.recentTurns.map { turn in
+        let runningIDs = Set(running.map(\.id))
+        let finishedTurns = store.recentTurns.filter { !runningIDs.contains($0.sessionID) }.prefix(recentlyFinishedLimit)
+        let finished = finishedTurns.map { turn in
             FinishedTurnRow(
-                id: "\(turn.sessionID.rawValue)@\(Int64(turn.endedAt.timeIntervalSince1970 * 1000))",
+                id: turn.sessionID.rawValue,
                 sessionID: turn.sessionID,
                 title: title(for: turn.record),
                 folderName: turn.record.folderName,

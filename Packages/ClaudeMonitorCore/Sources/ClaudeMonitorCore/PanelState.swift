@@ -53,7 +53,7 @@ public enum StatusIconState: Equatable, Sendable {
 public struct PanelState: Equatable, Sendable {
     /// Sessions that are `busy`, `waiting`, or in an unknown status. Waiting sessions come first.
     public var running: [RunningSessionRow]
-    /// The most recent completed turns, newest first.
+    /// The latest completed turn of each session that does not run now, newest first.
     public var recentlyFinished: [FinishedTurnRow]
     /// Set when no session file has a known format.
     public var formatWarning: String?

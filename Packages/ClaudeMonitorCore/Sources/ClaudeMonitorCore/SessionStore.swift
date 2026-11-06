@@ -39,14 +39,12 @@ public struct CompletedTurn: Equatable, Sendable {
 /// The only owner of session state transitions.
 public final class SessionStore {
     public private(set) var sessions: [SessionID: TrackedSession] = [:]
+    /// The latest completed turn of each session, newest first.
     public private(set) var recentTurns: [CompletedTurn] = []
 
-    private let recentTurnLimit: Int
     private var hasBaseline = false
 
-    public init(recentTurnLimit: Int = 10) {
-        self.recentTurnLimit = recentTurnLimit
-    }
+    public init() {}
 
     /// Compares the snapshot with the previous one. The first snapshot is the baseline and emits no events.
     @discardableResult
@@ -113,10 +111,8 @@ public final class SessionStore {
     }
 
     private func completeTurn(record: SessionRecord, duration: TimeInterval?) {
+        recentTurns.removeAll { $0.sessionID == record.id }
         recentTurns.insert(CompletedTurn(record: record, endedAt: record.statusUpdatedAt, duration: duration), at: 0)
-        if recentTurns.count > recentTurnLimit {
-            recentTurns.removeLast(recentTurns.count - recentTurnLimit)
-        }
     }
 
     private static func isTurnActive(_ status: SessionStatus) -> Bool {

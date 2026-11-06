@@ -35,23 +35,68 @@ struct SessionMonitorTests {
         #expect(harness.monitor.panelState.running.isEmpty)
     }
 
-    @Test func recentlyFinishedKeepsTenNewestFirst() throws {
+    @Test func recentlyFinishedShowsLatestTurnOncePerSession() throws {
         let harness = try MonitorHarness()
         try harness.writeSession("session-busy", pid: 100, status: "idle", at: 0)
         harness.refresh()
-
-        for turn in 1...12 {
-            let start = TimeInterval(turn * 100)
-            try harness.writeSession("session-busy", pid: 100, status: "busy", at: start)
-            harness.refresh()
-            try harness.writeSession("session-busy", pid: 100, status: "idle", at: start + TimeInterval(turn))
-            harness.refresh()
-        }
+        try harness.completeTurn(pid: 100, from: 10, to: 23)
+        try harness.completeTurn(pid: 100, from: 100, to: 372)
 
         let finished = harness.monitor.panelState.recentlyFinished
-        #expect(finished.count == 10)
-        #expect(finished.map(\.duration) == (3...12).reversed().map { TimeInterval($0) })
-        #expect(Set(finished.map(\.id)).count == 10)
+
+        #expect(finished.map(\.sessionID) == [busyID])
+        #expect(finished.first?.duration == 272)
+        #expect(finished.first?.endedAt == Fixture.date(372))
+    }
+
+    @Test func runningSessionLeavesRecentlyFinished() throws {
+        let harness = try MonitorHarness()
+        try harness.writeSession("session-busy", pid: 100, status: "idle", at: 0)
+        harness.refresh()
+        try harness.completeTurn(pid: 100, from: 10, to: 23)
+
+        try harness.writeSession("session-busy", pid: 100, status: "busy", at: 50)
+        harness.refresh()
+
+        #expect(harness.monitor.panelState.running.map(\.id) == [busyID])
+        #expect(harness.monitor.panelState.recentlyFinished.isEmpty)
+    }
+
+    @Test func unloadedMidTurnShowsPreviousTurnAgain() throws {
+        let harness = try MonitorHarness()
+        try harness.writeSession("session-busy", pid: 100, status: "idle", at: 0)
+        harness.refresh()
+        try harness.completeTurn(pid: 100, from: 10, to: 23)
+        try harness.writeSession("session-busy", pid: 100, status: "busy", at: 50)
+        harness.refresh()
+
+        harness.processes.startTimes[100] = nil
+        harness.refresh()
+
+        #expect(harness.monitor.panelState.running.isEmpty)
+        #expect(harness.monitor.panelState.recentlyFinished.map(\.duration) == [13])
+    }
+
+    @Test func recentlyFinishedKeepsTenNewestSessionsThatDoNotRun() throws {
+        let harness = try MonitorHarness()
+        let pids = (1...12).map { Int32(100 + $0) }
+        for pid in pids {
+            try harness.writeSession("session-busy", pid: pid, status: "idle", at: 0, overrides: ["hostSessionId": "local_session-\(pid)"])
+        }
+        harness.refresh()
+        for (index, pid) in pids.enumerated() {
+            let start = TimeInterval((index + 1) * 100)
+            try harness.completeTurn(pid: pid, from: start, to: start + TimeInterval(index + 1), hostSessionId: "local_session-\(pid)")
+        }
+
+        for pid in pids.suffix(2) {
+            try harness.writeSession("session-busy", pid: pid, status: "busy", at: 5000, overrides: ["hostSessionId": "local_session-\(pid)"])
+        }
+        harness.refresh()
+
+        let finished = harness.monitor.panelState.recentlyFinished
+        #expect(finished.map(\.sessionID.rawValue) == pids.prefix(10).reversed().map { "local_session-\($0)" })
+        #expect(finished.map(\.duration) == (1...10).reversed().map { TimeInterval($0) })
     }
 
     @Test func hidesSurfacesThatAreNotVisible() throws {

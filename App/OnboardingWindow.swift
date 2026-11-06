@@ -32,7 +32,7 @@ private struct OnboardingView: View {
             Label("Claude Monitor is in the menu bar", systemImage: "sparkle")
                 .font(.title2.weight(.semibold))
 
-            Text("Move the pointer onto the menu bar icon to see the running Claude Code sessions and the recently finished turns of the Claude app. Click a row to open the session in Claude.")
+            Text("Move the pointer onto the menu bar icon to see the running and recently finished Claude Code sessions of the Claude app. Click a row to open the session in Claude.")
 
             Text("When a turn completes, Claude Monitor shows a notification.")
 

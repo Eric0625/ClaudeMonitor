@@ -3,7 +3,8 @@
 Claude Monitor is a macOS menu bar app. It shows the state of the Claude Code sessions that run in the Claude desktop app (Code tab).
 
 - The app shows an icon in the menu bar. It has no Dock icon.
-- When the pointer stays on the icon, a panel shows the running sessions and the recently finished turns.
+- When the pointer stays on the icon, a panel shows the running sessions and the recently finished sessions.
+- "Recently finished" shows the latest completed turn of each session, for the 10 most recent sessions. A session that starts a new turn moves to "Running". Thus each session shows only one time.
 - When a session completes a turn, the app shows a macOS notification.
 
 ## Requirements
