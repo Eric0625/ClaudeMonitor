@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		1045BC8F854431817C584E70 /* SessionPanelController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85A5060EB7588D9F04600113 /* SessionPanelController.swift */; };
+		31EB4DA7F6033221B8AD1F61 /* UnreadBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92C0EDA6141A4341E97ADB1C /* UnreadBadge.swift */; };
 		32FBEEA325F61B992FBDD3CF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2255194FB20EED7B7DC78E7F /* Assets.xcassets */; };
 		4AF5A07F777D62D0A06093CB /* LaunchAtLogin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A34018D2A408C49808727A3B /* LaunchAtLogin.swift */; };
 		691E30130D8277DF3FDC9EF1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B8BFEBA39016F0EF23A100C /* AppDelegate.swift */; };
@@ -28,6 +29,7 @@
 		64C4829F289664FC8CED2F5C /* StatusItemController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusItemController.swift; sourceTree = "<group>"; };
 		85A5060EB7588D9F04600113 /* SessionPanelController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionPanelController.swift; sourceTree = "<group>"; };
 		9124B2A7CE41E3629A58327F /* SessionPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionPanelView.swift; sourceTree = "<group>"; };
+		92C0EDA6141A4341E97ADB1C /* UnreadBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnreadBadge.swift; sourceTree = "<group>"; };
 		9924D1F6FBFD4F220629C2E2 /* ClaudeMonitor.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClaudeMonitor.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A34018D2A408C49808727A3B /* LaunchAtLogin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLogin.swift; sourceTree = "<group>"; };
 		ABCD21A261F8731E82CCC9CC /* SessionOpener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionOpener.swift; sourceTree = "<group>"; };
@@ -84,6 +86,7 @@
 				85A5060EB7588D9F04600113 /* SessionPanelController.swift */,
 				9124B2A7CE41E3629A58327F /* SessionPanelView.swift */,
 				64C4829F289664FC8CED2F5C /* StatusItemController.swift */,
+				92C0EDA6141A4341E97ADB1C /* UnreadBadge.swift */,
 				403CD5E04D77B4DC03B52B3A /* UserNotificationPoster.swift */,
 			);
 			path = App;
@@ -172,6 +175,7 @@
 				1045BC8F854431817C584E70 /* SessionPanelController.swift in Sources */,
 				73B9748CD0C8690C6877D1DF /* SessionPanelView.swift in Sources */,
 				A70A57C80782DC60A68623DC /* StatusItemController.swift in Sources */,
+				31EB4DA7F6033221B8AD1F61 /* UnreadBadge.swift in Sources */,
 				C697AA93575BEE340AB23212 /* UserNotificationPoster.swift in Sources */,
 				7A5137731220F219F9D4B2A0 /* main.swift in Sources */,
 			);

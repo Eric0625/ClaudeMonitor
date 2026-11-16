@@ -86,8 +86,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
             if showsActivity {
                 title.append(NSAttributedString(string: "  ", attributes: [.font: font]))
             }
-            title.append(Self.unreadDot(font: font))
-            title.append(NSAttributedString(string: " \(unreadCount)", attributes: [.font: font]))
+            title.append(UnreadBadge.attributedString(count: unreadCount, font: font))
             let unreadLabel = unreadCount == 1 ? "1 unread session" : "\(unreadCount) unread sessions"
             label = showsActivity ? "\(label), \(unreadLabel)" : unreadLabel
         }
@@ -105,15 +104,6 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         button.appearsDisabled = state.icon.activity == .noSessions && unreadCount == 0
         button.setAccessibilityLabel(label)
         button.toolTip = nil
-    }
-
-    /// A text glyph, so that it takes the menu bar text color.
-    private static func unreadDot(font: NSFont) -> NSAttributedString {
-        let dotFont = NSFont.systemFont(ofSize: (font.pointSize * 0.75).rounded())
-        return NSAttributedString(string: "\u{25CF}", attributes: [
-            .font: dotFont,
-            .baselineOffset: ((font.capHeight - dotFont.capHeight) / 2).rounded(),
-        ])
     }
 
     private func configureButton(presenter: HoverPresenter) {
