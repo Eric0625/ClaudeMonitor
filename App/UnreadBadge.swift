@@ -1,9 +1,26 @@
 import AppKit
 
-/// The red capsule with the unread count in the menu bar.
+/// The bell and the red capsule with the unread count in the menu bar.
 enum UnreadBadge {
-    /// A non-template image attachment, so that the menu bar does not tint it.
     static func attributedString(count: Int, font: NSFont) -> NSAttributedString {
+        let result = NSMutableAttributedString(attributedString: bell(font: font))
+        result.append(NSAttributedString(string: " ", attributes: [.font: font]))
+        result.append(capsule(count: count, font: font))
+        return result
+    }
+
+    /// A template image, so that it takes the menu bar text color.
+    private static func bell(font: NSFont) -> NSAttributedString {
+        let image = NSImage(systemSymbolName: "bell.fill", accessibilityDescription: nil)?
+            .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: font.pointSize, weight: .regular))
+        image?.isTemplate = true
+        let attachment = NSTextAttachment()
+        attachment.image = image
+        return NSAttributedString(attachment: attachment)
+    }
+
+    /// A non-template image, so that the menu bar does not tint it.
+    private static func capsule(count: Int, font: NSFont) -> NSAttributedString {
         let digitFont = NSFont.monospacedDigitSystemFont(ofSize: (font.pointSize * 0.85).rounded(), weight: .semibold)
         let text = NSAttributedString(string: "\(count)", attributes: [
             .font: digitFont,

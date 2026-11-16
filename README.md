@@ -10,8 +10,8 @@ Claude Monitor is a macOS menu bar app. It shows the state of the Claude Code se
   | Dimmed sparkle | No session runs and no session is unread. |
   | Sparkle and a number | The number of running sessions. |
   | Raised hand and a number | One or more sessions wait for you. The number is the count of all running sessions. |
-  | Red badge with a number | The number of unread rows in "Recently finished". It shows next to the sparkle or the raised hand, or alone when no session runs. |
-  | Warning triangle | At least one session file has an unknown format and no session file has a known format. The icon then shows no number and no badge. |
+  | Bell and a red badge with a number | The number of unread rows in "Recently finished". It shows next to the sparkle or the raised hand, or alone when no session runs. |
+  | Warning triangle | At least one session file has an unknown format and no session file has a known format. The icon then shows no number, no bell, and no badge. |
 - When the pointer stays on the icon, or when you click the icon, a panel shows the running sessions and the recently finished sessions.
 - Right-click or Control-click the icon to show a menu with **Launch at Login** and **Quit Claude Monitor**.
 - "Recently finished" shows the latest completed turn of each session, for the 10 most recent sessions. A session that starts a new turn moves to "Running". Thus each session shows only one time.
@@ -233,7 +233,7 @@ Files in `App/`:
 | `main.swift` | The entry point. Starts the app without a Dock icon. |
 | `AppDelegate.swift` | Starts the monitor, the refresh driver, the notifications, and the welcome window. |
 | `StatusItemController.swift` | The menu bar icon, its hover tracking, and its menu. |
-| `UnreadBadge.swift` | The red unread badge in the menu bar. |
+| `UnreadBadge.swift` | The bell and the red unread badge in the menu bar. |
 | `SessionPanelController.swift` | The non-activating `NSPanel` below the icon. |
 | `SessionPanelView.swift` | The SwiftUI content of the panel. |
 | `UserNotificationPoster.swift` | Posts notifications and handles clicks on them. |
