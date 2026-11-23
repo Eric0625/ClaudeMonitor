@@ -134,6 +134,7 @@ The Claude app keeps one file for each session at `~/Library/Application Support
 | `isArchived` | An archived session does not open with the deep link. |
 | `lastActivityAt` | The last activity in the session. The parser reads it, but version 1 does not use it. |
 | `lastFocusedAt` | The last time that you opened the session in the Claude app. |
+| `spawnedFrom` | When `spawnedFrom.btw` is `true`, the session is a side chat. `spawnedFrom.sessionId` is its parent session. Claude desktop 6.28899.6 writes this field. |
 
 These files can be large. The app finds a file by name and caches its path. It reads the file again only when its modification time changes, at most every 5 seconds.
 
@@ -152,6 +153,8 @@ The Claude app does not change `lastFocusedAt` while you look at a session. Thus
 ### Deep links
 
 A click on a row or on a notification opens `claude://code/continue?session=<hostSessionId>` in the Claude app (`com.anthropic.claudefordesktop`). For an archived session or an ID that is not a desktop ID, the app only activates Claude, because the deep link does not find these sessions. Claude can turn off its deep links. Then the click only activates Claude.
+
+A side chat opens with the deep link of its parent session. The Claude app shows a side chat in the side pane of its parent, and it keeps the side pane of each session. Thus the parent shows the side chat again on the side. The deep link of the side chat itself shows the side chat as a normal session. If the parent is archived or has no metadata file, the side chat opens with its own deep link.
 
 ## Add support for a new file format version
 
@@ -273,3 +276,4 @@ Files in `Packages/ClaudeMonitorCore/Sources/ClaudeMonitorCore/`:
 - When a turn ends and the next turn starts between two reads, the app sees one long turn. The files look the same as a short wait for the user (`busy` to `waiting` to `busy`), which does not end a turn.
 - When the first read of a turn shows `waiting`, the app uses the start of the wait as the turn start. The time since the turn started and the duration are then too short.
 - A change from an unknown status to `idle` is not a completed turn, unless the app saw `busy` or `waiting` before it. This prevents false notifications for states that are not turns.
+- A click on a side chat opens its parent session. The parent shows the side chat that was last open in its side pane. If you closed the side pane, or opened a different side chat there after this one, the parent does not show this side chat.

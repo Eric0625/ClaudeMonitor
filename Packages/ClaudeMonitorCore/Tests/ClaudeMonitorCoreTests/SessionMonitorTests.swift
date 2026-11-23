@@ -256,6 +256,61 @@ struct SessionMonitorTests {
         #expect(harness.monitor.openTarget(for: busyID) == .activateClaude)
     }
 
+    @Test func sideChatOpensItsParentSession() throws {
+        let harness = try MonitorHarness()
+        try harness.folder.writeDesktopMetadata(hostSessionId: Fixture.idleSessionID)
+        try harness.folder.writeDesktopMetadata(
+            hostSessionId: Fixture.busySessionID,
+            overrides: ["spawnedFrom": Fixture.sideChatSpawnedFrom(parent: Fixture.idleSessionID)]
+        )
+        try harness.writeSession("session-busy", pid: 100, status: "busy", at: 0)
+
+        harness.refresh()
+
+        let parentTarget = SessionOpenTarget(sessionID: SessionID(Fixture.idleSessionID), isArchived: false)
+        #expect(harness.monitor.panelState.running.first?.openTarget == parentTarget)
+        #expect(harness.monitor.openTarget(for: busyID) == parentTarget)
+    }
+
+    @Test func archivedSideChatOpensItsParentSession() throws {
+        let harness = try MonitorHarness()
+        try harness.folder.writeDesktopMetadata(hostSessionId: Fixture.idleSessionID)
+        try harness.folder.writeDesktopMetadata(
+            hostSessionId: Fixture.busySessionID,
+            overrides: ["spawnedFrom": Fixture.sideChatSpawnedFrom(parent: Fixture.idleSessionID), "isArchived": true]
+        )
+
+        #expect(
+            harness.monitor.openTarget(for: busyID)
+                == SessionOpenTarget(sessionID: SessionID(Fixture.idleSessionID), isArchived: false)
+        )
+    }
+
+    @Test(arguments: [true, false])
+    func sideChatOpensItselfWhenParentCannotOpen(parentHasMetadata: Bool) throws {
+        let harness = try MonitorHarness()
+        if parentHasMetadata {
+            try harness.folder.writeDesktopMetadata(hostSessionId: Fixture.idleSessionID, overrides: ["isArchived": true])
+        }
+        try harness.folder.writeDesktopMetadata(
+            hostSessionId: Fixture.busySessionID,
+            overrides: ["spawnedFrom": Fixture.sideChatSpawnedFrom(parent: Fixture.idleSessionID)]
+        )
+
+        #expect(harness.monitor.openTarget(for: busyID) == SessionOpenTarget(sessionID: busyID, isArchived: false))
+    }
+
+    @Test func sessionStartedFromAnotherSessionOpensItself() throws {
+        let harness = try MonitorHarness()
+        try harness.folder.writeDesktopMetadata(hostSessionId: Fixture.idleSessionID)
+        try harness.folder.writeDesktopMetadata(
+            hostSessionId: Fixture.busySessionID,
+            overrides: ["spawnedFrom": Fixture.sideSessionSpawnedFrom(parent: Fixture.idleSessionID)]
+        )
+
+        #expect(harness.monitor.openTarget(for: busyID) == SessionOpenTarget(sessionID: busyID, isArchived: false))
+    }
+
     @Test func notificationUsesDesktopTitle() throws {
         let harness = try MonitorHarness()
         try harness.folder.writeDesktopMetadata(hostSessionId: Fixture.busySessionID, overrides: ["title": "Sidebar title"])

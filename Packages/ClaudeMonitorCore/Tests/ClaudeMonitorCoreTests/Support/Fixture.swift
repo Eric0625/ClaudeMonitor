@@ -9,6 +9,30 @@ enum Fixture {
     static let waitingSessionID = "local_a8d8f3ea-0000-4049-a019-7a9eceea89e4"
     static let unknownStatusSessionID = "local_c78eb17c-0000-481f-9572-238fb1c3830e"
 
+    /// `spawnedFrom` of a side chat, from Claude desktop 6.28899.6.
+    static func sideChatSpawnedFrom(parent: String) -> [String: Any] {
+        [
+            "sessionId": parent,
+            "taskId": "task_ece1b4fb",
+            "sideSession": true,
+            "userFork": true,
+            "btw": true,
+            "sharedFolder": true,
+            "name": "card-stop-position-fork",
+        ]
+    }
+
+    /// `spawnedFrom` of a session that another session started, which is not a side chat.
+    static func sideSessionSpawnedFrom(parent: String) -> [String: Any] {
+        [
+            "sessionId": parent,
+            "taskId": "task_223cc86d",
+            "title": "Stop retried flakes failing the test job",
+            "sideSession": true,
+            "name": "stop-retried-flakes-fail",
+        ]
+    }
+
     static func url(_ name: String) throws -> URL {
         guard let url = Bundle.module.url(forResource: name, withExtension: "json", subdirectory: "Fixtures") else {
             throw FixtureError.missing(name)

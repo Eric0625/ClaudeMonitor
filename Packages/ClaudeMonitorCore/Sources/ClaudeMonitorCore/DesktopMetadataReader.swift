@@ -8,12 +8,21 @@ public struct DesktopSessionMetadata: Equatable, Sendable {
     public var lastActivityAt: Date?
     /// The last time that the user opened the session in the Claude app.
     public var lastFocusedAt: Date?
+    /// The session that shows this side chat in its side pane. `nil` when the session is not a side chat.
+    public var sideChatParentID: SessionID?
 
-    public init(title: String?, isArchived: Bool, lastActivityAt: Date?, lastFocusedAt: Date?) {
+    public init(
+        title: String?,
+        isArchived: Bool,
+        lastActivityAt: Date?,
+        lastFocusedAt: Date?,
+        sideChatParentID: SessionID? = nil
+    ) {
         self.title = title
         self.isArchived = isArchived
         self.lastActivityAt = lastActivityAt
         self.lastFocusedAt = lastFocusedAt
+        self.sideChatParentID = sideChatParentID
     }
 }
 
@@ -120,8 +129,20 @@ public final class DesktopMetadataReader {
             title: object["title"] as? String,
             isArchived: object["isArchived"] as? Bool ?? false,
             lastActivityAt: epochMillisecondsDate(object["lastActivityAt"]),
-            lastFocusedAt: epochMillisecondsDate(object["lastFocusedAt"])
+            lastFocusedAt: epochMillisecondsDate(object["lastFocusedAt"]),
+            sideChatParentID: sideChatParentID(object["spawnedFrom"])
         )
+    }
+
+    private static func sideChatParentID(_ value: Any?) -> SessionID? {
+        guard
+            let spawnedFrom = value as? [String: Any],
+            spawnedFrom["btw"] as? Bool == true,
+            let parentID = spawnedFrom["sessionId"] as? String
+        else {
+            return nil
+        }
+        return SessionID(parentID)
     }
 
     private static func epochMillisecondsDate(_ value: Any?) -> Date? {

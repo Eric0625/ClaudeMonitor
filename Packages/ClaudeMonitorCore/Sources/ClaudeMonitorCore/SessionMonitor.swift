@@ -89,8 +89,15 @@ public final class SessionMonitor {
         publishPanelState()
     }
 
+    /// A side chat opens its parent session, because Claude shows the side chat in the side pane of the parent.
     public func openTarget(for id: SessionID) -> SessionOpenTarget {
-        SessionOpenTarget(sessionID: id, isArchived: metadataReader.metadata(for: id)?.isArchived ?? false)
+        let metadata = metadataReader.metadata(for: id)
+        if let parentID = metadata?.sideChatParentID,
+           let parent = metadataReader.metadata(for: parentID),
+           !parent.isArchived {
+            return SessionOpenTarget(sessionID: parentID, isArchived: false)
+        }
+        return SessionOpenTarget(sessionID: id, isArchived: metadata?.isArchived ?? false)
     }
 
     /// A turn that ends in the session that Claude shows in front is read.

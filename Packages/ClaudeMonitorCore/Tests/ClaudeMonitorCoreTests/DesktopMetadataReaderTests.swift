@@ -14,8 +14,32 @@ struct DesktopMetadataReaderTests {
             title: "Card stop position fix",
             isArchived: false,
             lastActivityAt: Date(timeIntervalSince1970: 1_793_924_252.282),
-            lastFocusedAt: Date(timeIntervalSince1970: 1_793_924_587.971)
+            lastFocusedAt: Date(timeIntervalSince1970: 1_793_924_587.971),
+            sideChatParentID: nil
         ))
+    }
+
+    @Test func readsParentOfSideChat() throws {
+        let folder = try FixtureFolder()
+        try folder.writeDesktopMetadata(
+            hostSessionId: Fixture.busySessionID,
+            overrides: ["spawnedFrom": Fixture.sideChatSpawnedFrom(parent: Fixture.idleSessionID)]
+        )
+        let reader = DesktopMetadataReader(rootDirectory: folder.desktopSessionsDirectory, reloadInterval: 0, now: Date.init)
+
+        #expect(reader.metadata(for: SessionID(Fixture.busySessionID))?.sideChatParentID == SessionID(Fixture.idleSessionID))
+    }
+
+    @Test func sessionStartedFromAnotherSessionIsNotSideChat() throws {
+        let folder = try FixtureFolder()
+        try folder.writeDesktopMetadata(
+            hostSessionId: Fixture.busySessionID,
+            overrides: ["spawnedFrom": Fixture.sideSessionSpawnedFrom(parent: Fixture.idleSessionID)]
+        )
+        let reader = DesktopMetadataReader(rootDirectory: folder.desktopSessionsDirectory, reloadInterval: 0, now: Date.init)
+
+        let metadata = try #require(reader.metadata(for: SessionID(Fixture.busySessionID)))
+        #expect(metadata.sideChatParentID == nil)
     }
 
     @Test func readsFileAgainWhenModificationTimeChanges() throws {
