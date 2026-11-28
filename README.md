@@ -320,11 +320,13 @@ To publish version 1.1.0, for example:
    brew upgrade --cask claude-monitor
    ```
 
-   You can also audit the cask. Do this after the installation, because Homebrew audits only a cask that it trusts. `--signing` downloads and expands the zip file as Homebrew does, then runs a Gatekeeper check. Homebrew does not do this check for a tap that is not official unless you add `--signing`.
+   You can also audit the cask. Do this after the installation, because Homebrew audits only a cask that it trusts.
 
    ```bash
-   brew audit --cask --online --signing eric0625/tap/claude-monitor
+   brew audit --cask --online eric0625/tap/claude-monitor
    ```
+
+   For a tap that is not official, this audit does not do the Gatekeeper check of Homebrew. To do that check, use `--new` in place of `--online`. Then ignore the problem "GitHub repository not notable enough". That rule applies only to the official Homebrew repository.
 
    `brew audit` is a developer command. It turns on the developer mode of Homebrew. In developer mode, `brew update` gets the latest Homebrew commits instead of the stable releases. To turn developer mode off, run `brew developer off`.
 
