@@ -21,10 +21,41 @@ Claude Monitor is a macOS menu bar app. It shows the state of the Claude Code se
 
 ## Install
 
-1. Get a notarized `ClaudeMonitor.app` (see [Distribute with Developer ID](#distribute-with-developer-id)).
-2. Move it to the `/Applications` folder and open it.
-3. On first launch, the app shows a welcome window and asks for permission to show notifications.
-4. To start the app at login, right-click the menu bar icon and select **Launch at Login**.
+### With Homebrew
+
+```bash
+brew install --cask eric0625/tap/claude-monitor
+```
+
+Homebrew adds the tap and moves `ClaudeMonitor.app` to the `/Applications` folder.
+
+Use the full name `eric0625/tap/claude-monitor`. Homebrew does not load a cask from a tap that is not official, unless you give its full name to `brew install` or trust it with `brew trust`. `brew install` with the full name trusts the cask. Thus `brew upgrade` and `brew uninstall` also work with the short name `claude-monitor`. `brew uninstall` removes the trust. To install the app again, use the full name again.
+
+To update the app:
+
+```bash
+brew upgrade --cask claude-monitor
+```
+
+To remove the app:
+
+```bash
+brew uninstall --cask claude-monitor
+```
+
+To also remove the settings of the app, add `--zap`.
+
+### From GitHub
+
+1. Download `ClaudeMonitor-<version>.zip` from [Releases](https://github.com/Eric0625/ClaudeMonitor/releases).
+2. Double-click the zip file to expand it.
+3. Move `ClaudeMonitor.app` to the `/Applications` folder.
+
+### First launch
+
+1. Open Claude Monitor from the `/Applications` folder.
+2. The app shows a welcome window and asks for permission to show notifications.
+3. To start the app at login, right-click the menu bar icon and select **Launch at Login**.
 
 ## Requirements
 
@@ -177,33 +208,127 @@ The app must read two folders that belong to other apps:
 
 A sandboxed app cannot read these folders without a file dialog each time. Thus the app has no sandbox, and it cannot go to the Mac App Store. Distribute it with Developer ID and notarization. The app uses the hardened runtime. It only reads files. It does not write to these folders.
 
-## Distribute with Developer ID
+## Publish a release
 
-1. Archive the app:
+A release has two parts:
+
+- A zip file of the notarized app on [GitHub Releases](https://github.com/Eric0625/ClaudeMonitor/releases).
+- The cask `Casks/claude-monitor.rb` in the tap repository [Eric0625/homebrew-tap](https://github.com/Eric0625/homebrew-tap).
+
+Before each release, make sure that:
+
+- The keychain has the Developer ID Application certificate of the team in `scripts/ExportOptions.plist`, and the certificate is not expired. To see the expiry date, run the command below. Releases that you signed before that date stay valid, because the signature has a secure timestamp.
+
+  ```bash
+  security find-certificate -c "Developer ID Application" -p | openssl x509 -noout -enddate
+  ```
+
+- The keychain has a notary profile with the name `notary-profile`. Make it with `xcrun notarytool store-credentials notary-profile`. To use a different name, set `NOTARY_PROFILE`.
+- The agreements of the Apple Developer Program are in effect. If they are not, `notarytool` fails with HTTP status 403.
+- The repository `Eric0625/ClaudeMonitor` is public. If it is private, the download URL in the cask gives HTTP status 404.
+- The public tap repository `Eric0625/homebrew-tap` exists and has a `Casks` folder.
+- `gh` is signed in to an account that can write to `Eric0625/ClaudeMonitor`. Check it with `gh auth status`.
+
+To publish version 1.1.0, for example:
+
+1. In `project.yml`, set `MARKETING_VERSION` to `1.1.0` and increase `CURRENT_PROJECT_VERSION` by 1. Then generate the project again:
 
    ```bash
-   xcodebuild -project ClaudeMonitor.xcodeproj -scheme ClaudeMonitor -configuration Release -archivePath build/ClaudeMonitor.xcarchive archive
+   xcodegen generate
    ```
 
-2. Export it with the Developer ID certificate:
+2. In `CHANGELOG.md`, move the entries under `## [Unreleased]` to a new section `## [1.1.0] - <date>`. Write the release date in the format `YYYY-MM-DD`. At the end of the file, add a link for `[1.1.0]`, and change the link for `[Unreleased]` to compare from `v1.1.0`. The script uses this section as the text of the GitHub release.
+3. Run the tests:
 
    ```bash
-   xcodebuild -exportArchive -archivePath build/ClaudeMonitor.xcarchive -exportOptionsPlist scripts/ExportOptions.plist -exportPath build/export
+   swift test --package-path Packages/ClaudeMonitorCore
    ```
 
-3. Send it to the notary service and staple the ticket. `notary-profile` is a keychain profile that you made with `xcrun notarytool store-credentials`:
-
-   ```bash
-   ditto -c -k --keepParent build/export/ClaudeMonitor.app build/ClaudeMonitor.zip
-   ```
+4. Commit `project.yml`, `CHANGELOG.md`, and the generated `ClaudeMonitor.xcodeproj` on the `main` branch:
 
    ```bash
-   xcrun notarytool submit build/ClaudeMonitor.zip --keychain-profile notary-profile --wait
+   git commit -am "Set the version to 1.1.0"
+   ```
+
+5. Build the release:
+
+   ```bash
+   scripts/release.sh
+   ```
+
+   The script archives the app and exports it with the Developer ID certificate. It checks the signature and the hardened runtime. Then it sends the app to the notary service and staples the ticket. It makes the zip file, expands it with `unzip`, and makes sure that Gatekeeper accepts the expanded app. It sets the minimum macOS version of the cask from the `LSMinimumSystemVersion` of the app. At the end, it shows the commit that it built and the commands for steps 6 and 7.
+
+   The script stops before it builds in these conditions:
+
+   - The working tree has changes.
+   - HEAD is not on the `main` branch.
+   - The tag `v1.1.0` exists in the local repository or on `origin`.
+   - `CHANGELOG.md` has no section for `1.1.0`, or the section is empty.
+
+   The script also stops when a check fails, for example in these conditions:
+
+   - The version of the built app is not the version in `project.yml`. This occurs when you did not generate the project again.
+   - The script has no Homebrew symbol for the `LSMinimumSystemVersion` of the app. Add the symbol to `scripts/release.sh`.
+   - The notary service rejects the app, or the signature, the stapled ticket, or Gatekeeper fails a check.
+
+   To build a test release from a working tree with changes, set `ALLOW_DIRTY=1`. Do not publish a test release. The script shows a warning at the end of a test release.
+
+   The script writes these files:
+
+   | File | Contents |
+   |---|---|
+   | `build/release/ClaudeMonitor-1.1.0.zip` | The notarized app, after the script stapled the ticket. |
+   | `build/release/claude-monitor.rb` | The cask, with the version and the SHA-256 of the zip file. |
+   | `build/release/release-notes.md` | The section of this version from `CHANGELOG.md`, for the GitHub release. |
+   | `build/release/notary-log.json` | The log of the notary service. The script writes it only when the notary service rejects the app. |
+   | `build/archives/ClaudeMonitor-1.1.0.xcarchive` | The archive with the debug symbols. Keep it to symbolicate crash reports of this version. |
+
+6. Push `main`, then make and push the tag on the commit that the script built. Then make the GitHub release:
+
+   ```bash
+   git push origin main
    ```
 
    ```bash
-   xcrun stapler staple build/export/ClaudeMonitor.app
+   git tag v1.1.0 <commit>
    ```
+
+   ```bash
+   git push origin v1.1.0
+   ```
+
+   ```bash
+   gh release create v1.1.0 build/release/ClaudeMonitor-1.1.0.zip --repo Eric0625/ClaudeMonitor --title 1.1.0 --notes-file build/release/release-notes.md --verify-tag
+   ```
+
+7. Copy `build/release/claude-monitor.rb` to `Casks/claude-monitor.rb` in the tap repository. Commit and push it.
+8. Make sure that the cask works:
+
+   ```bash
+   brew update
+   ```
+
+   For the first release, install the app. If you put a copy in the `/Applications` folder by hand, remove it first.
+
+   ```bash
+   brew install --cask eric0625/tap/claude-monitor
+   ```
+
+   For later releases, update the app:
+
+   ```bash
+   brew upgrade --cask claude-monitor
+   ```
+
+   You can also audit the cask. Do this after the installation, because Homebrew audits only a cask that it trusts. `--signing` downloads and expands the zip file as Homebrew does, then runs a Gatekeeper check. Homebrew does not do this check for a tap that is not official unless you add `--signing`.
+
+   ```bash
+   brew audit --cask --online --signing eric0625/tap/claude-monitor
+   ```
+
+   `brew audit` is a developer command. It turns on the developer mode of Homebrew. In developer mode, `brew update` gets the latest Homebrew commits instead of the stable releases. To turn developer mode off, run `brew developer off`.
+
+The `url` in `scripts/claude-monitor.rb.template` uses the tag `v<version>` and the file name `ClaudeMonitor-<version>.zip`. Keep the tag and the zip file name in this format.
 
 ## App icon
 
@@ -225,7 +350,10 @@ The SVG renderer of macOS ignores SVG filters. Thus the SVG draws its shadows wi
 | `Packages/ClaudeMonitorCore/Sources/ClaudeMonitorCore/` | All logic. See the table below. |
 | `Packages/ClaudeMonitorCore/Tests/` | Behavior scenarios, unit tests, and fixtures made from real files. |
 | `project.yml` | The XcodeGen project definition. |
+| `CHANGELOG.md` | The changes of each release. |
 | `scripts/ExportOptions.plist` | Export options for Developer ID. |
+| `scripts/release.sh` | Builds, notarizes, and packages a release. |
+| `scripts/claude-monitor.rb.template` | The Homebrew cask. `scripts/release.sh` adds the version, the SHA-256, and the minimum macOS version. |
 | `scripts/make-app-icon.swift` | Renders the app icon into the asset catalog. |
 | `design/AppIcon.svg` | The source of the app icon. |
 
@@ -277,3 +405,7 @@ Files in `Packages/ClaudeMonitorCore/Sources/ClaudeMonitorCore/`:
 - When the first read of a turn shows `waiting`, the app uses the start of the wait as the turn start. The time since the turn started and the duration are then too short.
 - A change from an unknown status to `idle` is not a completed turn, unless the app saw `busy` or `waiting` before it. This prevents false notifications for states that are not turns.
 - A click on a side chat opens its parent session. The parent shows the side chat that was last open in its side pane. If you closed the side pane, or opened a different side chat there after this one, the parent does not show this side chat.
+
+## License
+
+Claude Monitor is available under the [MIT License](LICENSE).
